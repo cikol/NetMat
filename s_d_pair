@@ -1,7 +1,0 @@
-set paths 1
-
-set temp1 {2}
-set temp2 {3}
-
-set opt(a) 9 
-Propagation/Shadowing set pathlossExp_ 4  ;# path loss exponent

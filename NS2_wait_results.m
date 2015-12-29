@@ -1,4 +1,4 @@
-function res=NS2_wait_results(res,co)
+function res=NS2_wait_results(res,folderName,co)
 %% check job to finish
 %load(res_file)
 scen_count=sum(res(:,1)~=0);
@@ -23,16 +23,17 @@ while sum(res(:,5)~=0)~=scen_count;
             
             
             jobdir=sprintf('wireless_c/job%g',f_id);
-            localdir=sprintf('job%g',f_id);
+            %localdir=sprintf('job%g',f_id);
+            localdir=sprintf('%s/job%g',folderName,f_id);
             
-            [~,count]=system(sprintf('plink -i ui-rtu.ppk ciko@%s "ls %s/*.mat | wc -l" ',cluster,jobdir));
+            [~,count]=system(sprintf('plink -i d:/ui-rtu.ppk ciko@%s "ls %s/*.mat | wc -l" ',cluster,jobdir));
             count=str2double(count);
             
             disp(sprintf('Scen:%d   Jobs finished: %d from %d',nr,count,jobs))
             
             if count==jobs || timeout>=2500
-                system(sprintf('pscp -i ui-rtu.ppk ciko@%s:%s/*.mat %s',cluster,jobdir,localdir));
-                system(sprintf('pscp -i ui-rtu.ppk ciko@%s:%s/*.mat %s',cluster,jobdir,localdir));
+                system(sprintf('pscp -i d:/ui-rtu.ppk ciko@%s:%s/*.mat %s',cluster,jobdir,localdir));
+                system(sprintf('pscp -i d:/ui-rtu.ppk ciko@%s:%s/*.mat %s',cluster,jobdir,localdir));
                 %cbr_max_=zeros(paths,size(co,1));
                 cbr_max_agr_=zeros(1,size(co,1));
                 dev_avg_=zeros(1,size(co,1));
@@ -78,7 +79,7 @@ while sum(res(:,5)~=0)~=scen_count;
                catch
                    fprintf('NS2 wait results: error deleting jobdir...')
                end
-               system(sprintf('plink -i ui-rtu.ppk ciko@%s "rm -r %s"',cluster,jobdir));
+               system(sprintf('plink -i d:/ui-rtu.ppk ciko@%s "rm -r %s"',cluster,jobdir));
                 
                 %             else
                 %                 tries(nr)=tries(nr)+1;

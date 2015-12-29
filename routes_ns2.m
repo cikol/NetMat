@@ -1,6 +1,9 @@
-function [nodes,temp1,temp2]=routes_ns2(Net,path_sets,set,s_id,paths)
-fid1=fopen('routes', 'w');
-fid2=fopen('s_d_pair', 'w');
+function [nodes,temp1,temp2]=routes_ns2(Net,folderName,path_sets,set,s_id,paths)
+
+fileName=sprintf('%s/routes',folderName);
+fid1=fopen(fileName, 'w');
+fileName=sprintf('%s/s_d_pair',folderName);
+fid2=fopen(fileName, 'w');
 k=Net.size+1;
 nodes=[];
 for n=1:paths

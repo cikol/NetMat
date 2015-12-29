@@ -8,7 +8,7 @@ function [s,r] = runCmdOnClusterAndReturnOutput(command,cluster)
 % clusterHost.
 
 %clusterHost='ciko@ui.grid.etf.rtu.lv';
-cmdForCluster = sprintf('plink -i ui-rtu.ppk ciko@%s "%s"', cluster, command);
+cmdForCluster = sprintf('plink -i d:/ui-rtu.ppk ciko@%s "%s"', cluster, command);
 
 for i=1:5
     [s, r] = system(cmdForCluster);

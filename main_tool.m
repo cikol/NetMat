@@ -3,7 +3,7 @@ function result_all=main_tool(alpha,paths,N,gain,system,name)
 if strcmp(system,'local')
     addpath('d:/ownCloud/matlab/lpsolve');
     laiks=clock;
-    folderName=sprintf('results_%d_%d_%d_%d_%d_%d',laiks(1),laiks(2),laiks(3),laiks(4),laiks(5),round(laiks(6)));
+    folderName=sprintf('/tmp/results_%d_%d_%d_%d_%d_%d',laiks(1),laiks(2),laiks(3),laiks(4),laiks(5),round(laiks(6)));
     mkdir(folderName);
 elseif strcmp(system,'hpc')
     addpath('/opt/exp_soft/lp_solve');
@@ -16,26 +16,8 @@ end
 %% Ievades parametri
 p=1;
 lim_sets=1;
-
-
 ns2='no';
 matlab='yes';
-
-% N=4;
-% alpha=4;
-% paths=2;
-
-
-% antena_type='array';gain='yes';cs_type='array';w=1;
-% antena_type='omni'; gain='no'; cs_type='omni'; w=0;
-% antena_type='array';gain='no'; cs_type='omni'; w=1;
-% antena_type='array';gain='no'; cs_type='array'; w=1;
-% antena_type='array';gain='no'; cs_type='array'; w=3;
-% antena_type='dof_smart';gain='no'; cs_type='omni'; w=0;
-% antena_type='dof_mimo';gain='no'; cs_type='omni'; w=0;
-
-
-
 fading='fading2';
 max_com_nodes=0;
 max_intersects=0;
@@ -333,13 +315,13 @@ for set=sets
                     t2=toc;
                 else
                     nr=nr+1;
-                    C_max=0; C_agr_proc=0;  C_m_u=0; C_m_f=0;
+                    C_max=0; C_agr_proc=0;  C_m_u=0; C_m_f=0;t2=0;
                 end
                               
                 
                 if N==1 && strcmp(ns2,'yes')
-                    [ns_nodes,s_ids,d_ids]=routes_ns2(Net,path_sets,set,s_id,paths);
-                    position_ns2(Net,field,s_id,paths,ns_nodes);
+                    [ns_nodes,s_ids,d_ids]=routes_ns2(Net,folderName,path_sets,set,s_id,paths);
+                    position_ns2(Net,folderName,field,s_id,paths,ns_nodes);
                     
                     if paths~=1
                         %co=npermutek([1 1],paths);
@@ -348,7 +330,7 @@ for set=sets
                         co=1;
                     end
                     if strcmp(system,'local')
-                        res=run_ns2_5(Net,s_ids,d_ids,paths,P_cst,nr,co,res);
+                        res=run_ns2_5(Net,folderName,s_ids,d_ids,paths,P_cst,nr,co,res);
                     elseif strcmp(system,'hpc')
                         res=run_ns2_5_cluster(Net,s_ids,d_ids,paths,P_cst,nr,co,res);
                     end
@@ -414,7 +396,7 @@ end
 if N==1 && strcmp(ns2,'yes')
     %co=npermutek([0.5 1],paths);
     if strcmp(system,'local')
-        res=NS2_wait_results(res,co);
+        res=NS2_wait_results(res,folderName,co);
     elseif strcmp(system,'hpc')
         res=NS2_wait_results_cluster(res,co);
     end

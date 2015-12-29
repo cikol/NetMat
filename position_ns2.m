@@ -1,7 +1,7 @@
-function position_ns2(Net,field,s_id,paths,nodes)
+function position_ns2(Net,folderName,field,s_id,paths,nodes)
 positions=Net.positions;
-
-fid=fopen('pos2.txt', 'w');
+fileName=sprintf('%s/pos2.txt',folderName);
+fid=fopen(fileName, 'w');
 s_pos=size(positions,1);
 for n=1:length(nodes)-paths+1
     %[n nodes(n)]
