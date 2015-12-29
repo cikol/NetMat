@@ -1,7 +1,8 @@
 function result_all=main_tool(alpha,paths,N,gain,system,name)
 %% environment
 if strcmp(system,'local')
-    addpath('d:/ownCloud/matlab/lpsolve');
+    addpath('d:/ownCloud/matlab/lpsolve');    
+    addpath('d:/ownCloud/matlab/tools');
     laiks=clock;
     folderName=sprintf('/tmp/results_%d_%d_%d_%d_%d_%d',laiks(1),laiks(2),laiks(3),laiks(4),laiks(5),round(laiks(6)));
     mkdir(folderName);
