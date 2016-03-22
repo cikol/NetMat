@@ -1,5 +1,65 @@
-function result_all=main_tool(alpha,paths,N,gain,system,name)
-%% environment
+function result_all=main_tool(alpha,paths,N,system,name)
+% Input parameters which can be modified
+rep=1; % Number of scenarious in single run
+lim_sets=1; % number of path sets selected in single run
+ns2='no'; % NS-2 simulation
+matlab='yes'; % MATLAB simulation
+max_com_nodes=0; % Maximal number of shared nodes
+max_intersects=0; % Maximal number of path intersects
+sel_c_v=[4];% vector containing path selection criteria to check for each scenario
+P_tx=0.1; % Tx power
+fc=2.45e9; % carrier frequency
+topology='random'; % node placement
+%topology='regular';
+gain='no'; % use direcdtional gain (only for antenna array simulation)
+
+%% Do not modify the code below
+if N>1
+    if strcmp(gain,'yes')
+        G=N^2; %Lai d_tx bûtu reiz 2, N ir 16
+        antenna_in={ 'array',G,'array',1,10,'full',''};
+    else
+        G=1;
+        %format: antenna_type, gain, PCS_type, nr,ic_scheme,ic_strategy
+        antenna_in={
+            % 'omni',1,'omni',0,1,'','';
+            %'array',1,'omni',1,2,'full','';
+                 'array',1,'array',1,3,'full','';
+          %  'array',1,'omni',3,4,'full','';
+          %  'array',1,'array',3,5,'full','';
+           %      'array',1,'omni',10,6,'full','';
+            %   'array',1,'omni',10,7,'obic','';
+                 'dof',1,'omni',0,8,'full','';
+            %  'dof',1,'omni',0,9,'obic','';
+            'mimo',1,'omni',0,11,'','';
+            %  'dof',1,'omni',0,12,'full','path';
+            %  'dof',1,'omni',0,13,'obic','path';
+            %'mimo',1,'omni',0,14,'','';
+            };
+    end
+elseif N==1;
+    G=1;
+    antenna_in={'omni',G,'omni',0,1,'',''};
+end
+
+%% Calculate Tx distance, Carrier sense
+lambda = physconst('LightSpeed')/fc;
+    d0=1; K=(lambda^2)/(4*pi*d0)^2;
+    tx_d=(P_tx*G*K/3.1623e-11)^(1/alpha);
+    tx_d_no_gain=(P_tx*K/3.1623e-11)^(1/alpha);    
+    Cs_vector=[2*tx_d];
+%Cs_vector=[2*tx_d]; % for interpath
+%Cs_vector=[1:0.1:3]*tx_d; %optimal CS
+ % for directionl
+%Cs_vector=[0]; % for directionl
+%Cs_vector=[1.5*tx_d 1.75*tx_d 2*tx_d 2.25*tx_d 2.5*tx_d]; %for correlation
+noise_scale_vector=[1];% noise floor=1.6016e-013 W;
+
+%topology='linear';
+
+
+
+%% set up environment
 if strcmp(system,'local')
     addpath('d:/ownCloud/matlab/lpsolve');    
     addpath('d:/ownCloud/matlab/tools');
@@ -14,75 +74,20 @@ elseif strcmp(system,'hpc')
     cd(folderName)
 end
 
-%% Ievades parametri
-p=1;
-lim_sets=1;
-ns2='no';
-matlab='yes';
-fading='fading2';
-max_com_nodes=0;
-max_intersects=0;
-if N>1
-    if strcmp(gain,'yes')
-        G=N^2; %Lai d_tx bûtu reiz 2, N ir 16
-        antenna_in={ 'array',G,'array',1,10,'full',''};
-    else
-        G=1;
-        %format: antenna_type, gain, PCS_type, nr,ic_scheme,ic_strategy
-        antenna_in={
-            % 'omni',1,'omni',0,1,'','';
-            %'array',1,'omni',1,2,'full','';
-            'array',1,'array',1,3,'full','';
-          %  'array',1,'omni',3,4,'full','';
-          %  'array',1,'array',3,5,'full','';
-            %     'array',1,'omni',10,6,'full','';
-            %   'array',1,'omni',10,7,'obic','';
-            'dof',1,'omni',0,8,'full','';
-            %  'dof',1,'omni',0,9,'obic','';
-            'mimo',1,'omni',0,11,'','';
-            %  'dof',1,'omni',0,12,'full','path';
-            %  'dof',1,'omni',0,13,'obic','path';
-            %'mimo',1,'omni',0,14,'','';
-            };
-    end
-elseif N==1;
-    G=1;
-    antenna_in={'omni',G,'omni',0,1,'',''};
-end
-
-if strcmp(fading,'fading1')
-    tx_d=250; % sâkotnçjie aprçíini veikti pie ðîs jutîbas
-else
-    P_tx=0.1;
-    fc=2.45e9;
-    lambda = physconst('LightSpeed')/fc;
-    d0=1; K=(lambda^2)/(4*pi*d0)^2;
-    tx_d=(P_tx*G*K/3.1623e-11)^(1/alpha);
-    tx_d_no_gain=(P_tx*K/3.1623e-11)^(1/alpha);
-end
-Cs_vector=[2*tx_d]; % for interpath
-%Cs_vector=[1:0.1:3]*tx_d; %optimal CS
-%Cs_vector=[0 2*tx_d]; % for directionl
-%Cs_vector=[0]; % for directionl
-%Cs_vector=[1.5*tx_d 1.75*tx_d 2*tx_d 2.25*tx_d 2.5*tx_d]; %for correlation
-%noise_scale_vector=[10 1 0.1];% noise floor=1.6016e-013 W;
-noise_scale_vector=[1];% noise floor=1.6016e-013 W;
-%topology='regular';
-%topology='linear';
-topology='random';
-
-%%
+%% Field size
 [field,nodes]=gen_field(topology,tx_d_no_gain);
 
 
-%% Atkartojumi
+%% Repetions
 k=1;
+p=1;
 positions=[];
 time1=clock;
-while k<=1
-    [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,lim_sets,fading,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+while k<=rep
+    [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
     disp(sprintf('%g-%g-%g-%g-%g-%g:k=%d,alpha=%d,field=%d,paths=%d,N=%d,nodes=%d',clock,k,alpha,field,paths,N,nodes));
-    if  max(max(result))~=0 || nodes>=180
+    %if  max(max(result))~=0 || nodes>=180
+    if  max(max(result))~=0
         result_all(p:p+(size(result,1))-1,:)=result;
         p=p+size(result,1);
         k=k+1;
@@ -98,8 +103,9 @@ end
 end
 
 function [field,nodes]=gen_field(topology,tx_d_no_gain)
+rng('shuffle')
 if strcmp(topology,'random')
-    field=round(tx_d_no_gain*2+rand()*tx_d_no_gain*6);
+    field=round(tx_d_no_gain*3+rand()*tx_d_no_gain*2);
     %field=round(tx_d_no_gain*8);
     nodes=ceil((field/(tx_d_no_gain*0.6))^2);
 elseif strcmp(topology,'regular')
@@ -110,7 +116,8 @@ end
 end
 
 
-function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,lim_sets,fading,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+rng('shuffle')
 tic
 nr=0;
 tx_pow=0.1;
@@ -120,6 +127,7 @@ lambda = physconst('LightSpeed')/fc;
 d0=1; K=(lambda^2)/(4*pi*d0)^2;
 new_net=1;
 proto='smr_mod';
+%proto='smr';
 %% create nodes
 if new_net~=0
     for n=1:nodes
@@ -144,6 +152,7 @@ tries=0;
 while no_connectivity==1 & tries<100
     tries=tries+1;
     %set node posstiontions
+    fading='fading2';
     Net=new_network(Net,topology,positions,fading,'transceivers1','array','perfect',[nodes field/2 tx_d],[tx_pow 1e6],[1 alpha 0]);
     %% find neighbours
     [Net,no_connectivity]=find_neighbours(Net,tx_d);
@@ -193,7 +202,8 @@ if isempty(path_sets)
 end
 Net.s_d_id=[s_id d_id];
 
-rng=1;
+%rng=1;
+
 Net.id=round(rand()*1000000);
 positions=Net.positions;
 name2=sprintf('%s/positions_%05.f.mat',folderName,Net.id);
@@ -206,7 +216,7 @@ name2=sprintf('%s/positions_%05.f.mat',folderName,Net.id);
 time2=clock;
 t1=etime(time2,time1);
 res=zeros(1,10);
-for sel_p=4:4
+for sel_c=sel_c_v
 % if Net.distances<4*tx_d
 %     sel_p=3;
 % else
@@ -215,7 +225,11 @@ for sel_p=4:4
 %sel_p=4;
 %% Marsrutu komplektu atlase analizei
 clear sets
-[sets]=select_path_sets(path_sets,sel_p,character,lim_sets);
+[sets]=select_path_sets(path_sets,sel_c,character,lim_sets);
+
+%% 
+
+
 
 %% Method
 %res=zeros(length(sets),10);
@@ -353,7 +367,7 @@ for set=sets
                 result(r,10)=0;
                 result(r,11)=0;%C*paths; %C_agr
                 result(r,12)=alpha;
-                result(r,13)=sel_p;
+                result(r,13)=sel_c;
                 result(r,14)=character(set,5); %num_of_nodes;
                 %result(r,15)=character(set,7); %shared_links;
                 result(r,15)=size(path_sets,1); % marðrutu komplektu skaits;

@@ -1,4 +1,4 @@
-function [path_sets]=path_selection2(Net,s_id,paths,max_com_nodes,max_intersects)
+function [path_sets]=path_selection(Net,s_id,paths,max_com_nodes,max_intersects)
 %path_sets=[];
 
 

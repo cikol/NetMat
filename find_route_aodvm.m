@@ -1,4 +1,5 @@
 function [Net,n_of_my_routes]=find_route_aodvm(Net,s_id,d_id)
+
 active=Net.size;
 k=0;
 tic
@@ -73,7 +74,7 @@ end
 for nb_id=Net.node(d_id).rreq(:,2)'
     %nb_id
     if nb_id~=s_id
-            Net.rrep(nb_id)=1;
+        Net.rrep(nb_id)=1;
     end
     Net.node(nb_id).route{1}=[d_id];
     Net.hops(nb_id)=1;
@@ -124,6 +125,26 @@ while max(Net.rrep)~=0
             
         end
     end
+    if strcmp(visual,'yes')
+        j=1;
+        for n=1:active
+            if ~isempty(Net.node(n).route{1})
+                for r=1:size(Net.node(n).route,2)
+                    path=[n Net.node(n).route{r}];
+                    
+                    for node=1:length(path)-1
+                        con(j,:)=[path(node) path(node+1)];
+                        j=j+1;
+                        
+                    end
+                end
+                
+            end
+        end
+        
+        hold on
+        draw_routes(Net,con,fig);
+    end
 end
 
 
@@ -139,6 +160,8 @@ else
     end
     %Net.node(s_id).route=Net.node(d_id).route;
 end
+
+
 
 %k
 function [Net]=delete_from_table(Net,nb_id,n_id)

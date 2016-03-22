@@ -1,5 +1,5 @@
-function [mode_all,counts,summa]=cs_test5_optimal_v2(Net,con, P_cst)
-
+function [mode_all,counts,summa]=find_schemes(Net,con, P_cst)
+rng('shuffle')
 if P_cst~=Inf;
     type=Net.type;
 else

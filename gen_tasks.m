@@ -1,15 +1,17 @@
 clear task_in
 comment='';
-%aplha_v=ones(1,15)*4;
+%aplha_v=ones(1,20)*4;
 %aplha_v=[2 3 4 5];
-aplha_v=[4];
-paths_v=[3];
-%paths_v=[4];
-%N_v=[2 4 6 8 10 12 14 16 32];
-N_v=[10];
-%N_v=ones2(1,20);
+aplha_v=ones(1,5)*4;
+%aplha_v=[4];
+%paths_v=[1 2 3 4];
+paths_v=[4];
+N_v=[2 4 6 8 10 12 14 16 32];
+%N_v=[4 8 16];
+%N_v=[8];
+%N_v=ones(1,32);
 %N_v=[25 36 49 64 81];
-gain='no';
+gain='yes';
 system='hpc';
 %name='find_route_test';
 %name='dof_vs_vector';
@@ -21,8 +23,8 @@ system='hpc';
 %name='interpath_new_metrics_optimal';
 %name='interpath_allmetrics';
 %name='interpath_allmetrics_smart';
-%name='interpath_smart_random_gain';
-name='interpath_smart_random';
+name='interpath_smart_random_gain';
+%name='interpath_smart_random_new';
 
 cluster=parcluster('rtuhpc');
   %  tag=sprintf('%s field=%d-%d paths=%d',comment,min(aplha_v),max(aplha_v),paths_v(n1));
@@ -39,7 +41,7 @@ for n1=1:length(paths_v)
         end
     end
     job=createJob(cluster);
-    createTask(job, @run_komandu_izpilde_new, 1, task_in)
+    createTask(job, @main_tool, 1, task_in)
     %createTask(job, @run_komandu_izpilde_test_routing, 1, task_in)
     submit(job)
 end

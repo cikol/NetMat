@@ -4,7 +4,7 @@ j=1;
 
 for p=1:size(path_sets,2)-1
     
-    path=Net.node(s_id).route{path_sets(set,p)}
+    path=Net.node(s_id).route{path_sets(set,p)};
     
     for node=1:length(path)-1
         % path(node)

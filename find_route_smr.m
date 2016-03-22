@@ -1,9 +1,17 @@
 function [Net, n_of_my_routes]=find_route8(Net,s_id,d_id)
+rng('shuffle')
+
 active=Net.size;
 Net.rreq=zeros(active,1);
 Net.hops=zeros(active,1);
+visual='yes';
+if strcmp(visual,'yes')
+    fig=figure('Position',[969 49 944 947]);
+    display_network(Net,fig,s_id,d_id);
+    pause(10);
+end
 tic
-fig=figure('Visible','off');
+%fig=figure('Visible','off');
 % Initiate route discovery @ source
 Net.rreq(s_id)=1;
 if isfield(Net.node, 'route')
@@ -20,6 +28,8 @@ end
 while max(Net.rreq)~=0
   %  [toc max(Net.rreq)]    
     n_list=find(Net.rreq); % izfiltreju mezglus ar tockenu (paketi kuru pârraidît)
+    min_hop_list=find(Net.hops(n_list)==min(Net.hops(n_list)));%noskaidroju, kuri no ðiem mezlgiem ir vistuvâk source
+    n_list=n_list(min_hop_list); %izvelos ar min hopu skaitu;
     rand_n=ceil(rand()*length(n_list));
     n_id=n_list(rand_n); % òemu mezglu no saraksta
     rreq_counter=Net.rreq(n_id); %nepârsûtîtu rreq skaitîtâjs
@@ -51,25 +61,25 @@ while max(Net.rreq)~=0
         end
     end
     
-%         
-%         j=1;
-%         for n=1:active
-%             if ~isempty(Net.node(n).route)
-%                 for r=1:size(Net.node(n).route,2)
-%                     path=[Net.node(n).route{r} n];
-%     
-%                     for node=1:length(path)-1
-%                         con(j,:)=[path(node) path(node+1)];
-%                         j=j+1;
-%     
-%                     end
-%                 end
-%     
-%             end
-%         end
-%         %%
-%         hold on
-%         draw_routes(Net,con,fig);
+        
+        j=1;
+        for n=nb_list
+            if ~isempty(Net.node(n).route{1})
+                for r=1:size(Net.node(n).route,2)
+                    path=[Net.node(n).route{r} n];
+    
+                   % for node=length(path)-1:length(path)
+                        con(j,:)=[path(end-1) path(end)];
+                        j=j+1;
+    
+                %    end
+                end
+    
+            end
+        end
+        
+        hold on
+        draw_routes(Net,con,fig);
 end
 n_of_my_routes=size(Net.node(d_id).route,2);
 
@@ -82,4 +92,35 @@ else
     end
     Net.node(s_id).route=Net.node(d_id).route;
 end
+if strcmp(visual,'yes')
+    path_sets=path_selection(Net,s_id,2,2,0);
+    j=1;
+        for n=1:active
+            if ~isempty(Net.node(n).route)
+                for r=1:size(Net.node(n).route,2)
+                    path=[Net.node(n).route{r}];
+                    
+                    for node=1:length(path)-1
+                        con(j,:)=[path(node) path(node+1)];
+                        j=j+1;
+                        
+                    end
+                end
+                
+            end
+        end
+        
+        hold on
+        draw_routes(Net,con,fig);
+    
+    con=connection_list2(Net,s_id,path_sets,1);
+    for k=1:size(con)
+        x1=Net.node(con(k,1)).position.InitialPosition(1);
+        x2=Net.node(con(k,2)).position.InitialPosition(1);
+        y1=Net.node(con(k,1)).position.InitialPosition(2);
+        y2=Net.node(con(k,2)).position.InitialPosition(2);
+        
+        myline=line([x1 x2],[y1 y2],'LineStyle','-','Tag','linija','LineWidth',3);
+    drawnow
+    end
 end
