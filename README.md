@@ -18,11 +18,11 @@ Statistics and Machine Learning Toolbox
 lpsolve - Mixed Integer Linear Programming solver. External program from http://lpsolve.sourceforge.net/
 
 
+## Input Parameters
+
 Execution format is:
 
 [output]=main_tool(alpha,paths,N,system,name)
-
-## Input Parameters
 
 alpha - path loss exponent in radio propagation model;
 
@@ -34,11 +34,13 @@ system - valid values ar 'local' or 'hpc';
 
 name - name of the task;
 
+Additional parameters can be changed inside M-file.
+
 Example:
 
 [output]=main_tool(4,2,1,'local','testrun')
 
-Additional parameters can be changed inside M-file.
+
 
 ## Understanding Output
 
