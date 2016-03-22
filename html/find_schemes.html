@@ -1,0 +1,423 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>find_schemes</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-02-23"><meta name="DC.source" content="find_schemes.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Konfliktu grafs p&#275;c protokola mode&#316;a</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [mode_all,counts,summa]=find_schemes(Net,con, P_cst)
+</pre><pre class="codeinput">rng(<span class="string">'shuffle'</span>)
+<span class="keyword">if</span> P_cst~=Inf;
+    type=Net.type;
+<span class="keyword">else</span>
+    type=<span class="string">'ideal'</span>;
+<span class="keyword">end</span>
+G_antenna=Net.G;
+mode_all={};
+<span class="comment">%%Physical Carrier Sense threshold</span>
+<span class="comment">% lambda = physconst('LightSpeed')/Net.node(1).fc;</span>
+<span class="comment">% P_tx=Net.node(1).transmit_pow;</span>
+<span class="comment">% %Nosaka P_cst slieksni</span>
+<span class="comment">% if strcmp(Net.fading,'fading1')</span>
+<span class="comment">%     P_cst=(P_tx*lambda^2)/((4*pi*R_cst)^2);</span>
+<span class="comment">% elseif strcmp(Net.fading,'fading2')</span>
+<span class="comment">%     d0=Net.fading_parameters(1);</span>
+<span class="comment">%     alpha=Net.fading_parameters(2);</span>
+<span class="comment">%     %sigma=Net.fading_parameters(3);</span>
+<span class="comment">%     %RM=10.^(normrnd(0,sigma,Net.size,Net.size)/10);</span>
+<span class="comment">%     K=(lambda^2)/((4*pi*d0)^2);</span>
+<span class="comment">%     P_cst=P_tx*K/((R_cst/d0)^(alpha));</span>
+<span class="comment">% end</span>
+P_tx=Net.node(1).transmit_pow;
+noise=Net.thermal_noise_vector(1);
+
+<span class="comment">% gadijumam, ja troksnis ir lielaks kaa P_cst</span>
+<span class="comment">% if P_cst&lt;=noise &amp;&amp; P_cst~=0 &amp;&amp;</span>
+<span class="comment">%     for no=1:size(con,1)</span>
+<span class="comment">%         mode_all{no}=[con(no,:) con(no,1) Net.node(con(no,1)).transmit_pow 0];</span>
+<span class="comment">%     end</span>
+<span class="comment">%     disp('CS  &lt; nosie')</span>
+<span class="comment">%     return</span>
+<span class="comment">% end</span>
+</pre><pre class="codeoutput error">Error using find_schemes (line 3)
+Not enough input arguments.
+</pre><h2>Konfliktu grafs p&#275;c protokola mode&#316;a<a name="3"></a></h2><pre class="codeinput">size_L=size(con,1);
+CS_graph=ones(size(con,1));
+<span class="keyword">for</span> i=1:size_L
+    <span class="keyword">for</span> j=1:size_L
+
+        s1=con(i,1);
+        r1=con(i,2);
+        s2=con(j,1);
+        r2=con(j,2);
+        <span class="keyword">if</span>  max(con(i,1:2)==s2)==0 &amp; max(con(i,1:2)==r2)==0
+
+            <span class="keyword">if</span> strcmp(type,<span class="string">'array'</span>)
+                Net=weights(Net,[con(i,:);con(j,:)]);
+                R=antenna_response_matrix2(Net,[s1 s2; s2 s1]);
+            <span class="keyword">elseif</span> strcmp(type,<span class="string">'ideal'</span>)
+                R=zeros(Net.size);
+            <span class="keyword">elseif</span> strcmp(type,<span class="string">'omni'</span>)
+                R=ones(Net.size);
+            <span class="keyword">end</span>
+
+            R_tx1=R(s1,s2);
+            R_tx2=R(s2,s1);
+            G_1=Net.gains(s1,s2);
+            P_s_tx=R_tx1*R_tx2*G_1*P_tx*G_antenna;
+
+
+            <span class="keyword">if</span> (P_s_tx)&lt;P_cst <span class="comment">%| P_rx2&gt;P_cst</span>
+
+                <span class="comment">%mode_temp=[mode_temp;con_temp(j,:)];</span>
+                <span class="comment">%[~,r]=ismember(con_temp(j,:),con,'rows');</span>
+                CS_graph(j,i)=P_s_tx;
+            <span class="keyword">end</span>
+
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">%[con CS_graph]</span>
+</pre><pre class="codeinput">counts=0;
+counts1=0;
+counts2=0;
+tries=50;
+z_c=0;
+P=CS_graph;
+end_counter=[];
+<span class="keyword">while</span> z_c&lt;tries*size_L
+    counts=counts+1;
+    mode=[];
+    i_mode=[];
+    con_temp=con;
+    P_mode=ones(size(con,1),1)*noise;
+    val= true(size(con,1),1); <span class="comment">% logical vektors</span>
+    <span class="keyword">while</span> ~isempty(con_temp)
+        size_L_temp=size(con_temp,1);
+        i=ceil(rand()*size_L_temp);
+        [~,r]=ismember(con_temp(i,:),con,<span class="string">'rows'</span>);
+        <span class="keyword">if</span> ~isempty(mode)
+            P_rc=P_mode(i_mode)+P(r,i_mode)'; <span class="comment">%links in schema</span>
+            P_cr=P_mode(r)+sum(P(i_mode,r)); <span class="comment">%link under test</span>
+        <span class="keyword">else</span>
+            P_rc=noise;
+            P_cr=noise;
+        <span class="keyword">end</span>
+
+        <span class="keyword">if</span> (P_rc&lt;P_cst &amp; P_cr&lt;P_cst) | isempty(mode)
+            P_mode(i_mode)=P_rc;
+            P_mode(r)=P_cr;
+            mode=[mode; con_temp(i,:)];
+            i_mode=[i_mode; r];
+            val=(CS_graph(:,r)&lt;1) &amp; val;
+        <span class="keyword">else</span>
+            val(r)=0;
+        <span class="keyword">end</span>
+        <span class="comment">%Nosakam atliku&#353;os iesp&#275;jamos linkus</span>
+        con_temp=con(val,:);
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> isempty(mode_all)
+        mode_all{1}=mode;
+        fp=sum(sum(mode(:,1:3)));
+        fp_all=fp;
+        z_c=0;
+    <span class="keyword">else</span>
+        test=0;
+<span class="comment">%         for n=1:size(mode_all,2);</span>
+<span class="comment">%                 counts1=counts1+1;</span>
+<span class="comment">%                 if isempty(setxor(mode_all{n},mode,'rows'))</span>
+<span class="comment">%                     test=1;</span>
+<span class="comment">%                     break</span>
+<span class="comment">%                 end</span>
+<span class="comment">%         end</span>
+        fp=sum(sum(mode(:,1:3)));
+        <span class="keyword">if</span> max(fp_all==fp)==1;
+            <span class="comment">%parbaudam tikai tos, kuriem fingerprints ir vien&#257;ds. Ja</span>
+            <span class="comment">%summa ir da&#382;&#257;da, shemas nevar b&#363;t vien&#257;das pat ja linku</span>
+            <span class="comment">%izk&#257;rtojums cits.</span>
+            kurs=find(fp_all==fp);
+            <span class="keyword">for</span> nn=1:length(kurs)
+                n=kurs(nn);
+                <span class="keyword">if</span> size(mode_all{n},1)==size(mode,1)
+                       counts1=counts1+1;
+                    <span class="keyword">if</span> isempty(setxor(mode_all{n},mode,<span class="string">'rows'</span>))
+
+                        test=1;
+                        <span class="keyword">break</span>
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+
+
+        <span class="keyword">if</span> test==0
+            mode_all{size(mode_all,2)+1}=sortrows(mode);
+            fp_all=[fp_all fp];
+            end_counter=[end_counter 1];
+            z_c=0;
+        <span class="keyword">else</span>
+            end_counter=[end_counter 0];
+            z_c=z_c+1;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+summa=[];
+<span class="keyword">for</span> x=1:100:length(end_counter)-99;
+    summa=[summa sum(end_counter(x:x+99))];
+<span class="keyword">end</span>
+<span class="comment">%summa=[summa zeros(1,30-length(summa))];</span>
+<span class="comment">%size(summa)</span>
+<span class="comment">% for k=1:size(mode_all,2)</span>
+<span class="comment">%     for kk=1:size(mode_all{k},1)</span>
+<span class="comment">%         mode_all{k}(kk,4:6)=[mode_all{k}(kk,1) Net.node(mode_all{k}(kk,1)).transmit_pow 0];</span>
+<span class="comment">%        % mode_all{k}(kk,4:5)=[con(1,1) Net.node(mode_all{k}(kk,1)).transmit_pow];</span>
+<span class="comment">%</span>
+<span class="comment">%     end</span>
+<span class="comment">% end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [mode_all,counts,summa]=find_schemes(Net,con, P_cst)
+rng('shuffle')
+if P_cst~=Inf;
+    type=Net.type;
+else
+    type='ideal';
+end
+G_antenna=Net.G;
+mode_all={};
+%%Physical Carrier Sense threshold
+% lambda = physconst('LightSpeed')/Net.node(1).fc;
+% P_tx=Net.node(1).transmit_pow;
+% %Nosaka P_cst slieksni
+% if strcmp(Net.fading,'fading1')
+%     P_cst=(P_tx*lambda^2)/((4*pi*R_cst)^2);
+% elseif strcmp(Net.fading,'fading2')
+%     d0=Net.fading_parameters(1);
+%     alpha=Net.fading_parameters(2);
+%     %sigma=Net.fading_parameters(3);
+%     %RM=10.^(normrnd(0,sigma,Net.size,Net.size)/10);
+%     K=(lambda^2)/((4*pi*d0)^2);
+%     P_cst=P_tx*K/((R_cst/d0)^(alpha));
+% end
+P_tx=Net.node(1).transmit_pow;
+noise=Net.thermal_noise_vector(1);
+
+% gadijumam, ja troksnis ir lielaks kaa P_cst
+% if P_cst<=noise && P_cst~=0 &&
+%     for no=1:size(con,1)
+%         mode_all{no}=[con(no,:) con(no,1) Net.node(con(no,1)).transmit_pow 0];
+%     end
+%     disp('CS  < nosie')
+%     return
+% end
+
+%% Konfliktu grafs pēc protokola modeļa
+size_L=size(con,1);
+CS_graph=ones(size(con,1));
+for i=1:size_L
+    for j=1:size_L
+        
+        s1=con(i,1);
+        r1=con(i,2);
+        s2=con(j,1);
+        r2=con(j,2);
+        if  max(con(i,1:2)==s2)==0 & max(con(i,1:2)==r2)==0
+            
+            if strcmp(type,'array')
+                Net=weights(Net,[con(i,:);con(j,:)]);
+                R=antenna_response_matrix2(Net,[s1 s2; s2 s1]);
+            elseif strcmp(type,'ideal')
+                R=zeros(Net.size);
+            elseif strcmp(type,'omni')
+                R=ones(Net.size);
+            end
+            
+            R_tx1=R(s1,s2);
+            R_tx2=R(s2,s1);
+            G_1=Net.gains(s1,s2);
+            P_s_tx=R_tx1*R_tx2*G_1*P_tx*G_antenna;
+            
+            
+            if (P_s_tx)<P_cst %| P_rx2>P_cst
+                
+                %mode_temp=[mode_temp;con_temp(j,:)];
+                %[~,r]=ismember(con_temp(j,:),con,'rows');
+                CS_graph(j,i)=P_s_tx;
+            end
+            
+        end
+        
+    end
+end
+
+%[con CS_graph]
+
+%% 
+counts=0;
+counts1=0;
+counts2=0;
+tries=50;
+z_c=0;
+P=CS_graph;
+end_counter=[];
+while z_c<tries*size_L
+    counts=counts+1;
+    mode=[];
+    i_mode=[];
+    con_temp=con;
+    P_mode=ones(size(con,1),1)*noise;
+    val= true(size(con,1),1); % logical vektors
+    while ~isempty(con_temp)
+        size_L_temp=size(con_temp,1);
+        i=ceil(rand()*size_L_temp);
+        [~,r]=ismember(con_temp(i,:),con,'rows');
+        if ~isempty(mode)
+            P_rc=P_mode(i_mode)+P(r,i_mode)'; %links in schema
+            P_cr=P_mode(r)+sum(P(i_mode,r)); %link under test
+        else
+            P_rc=noise;
+            P_cr=noise;
+        end
+        
+        if (P_rc<P_cst & P_cr<P_cst) | isempty(mode)
+            P_mode(i_mode)=P_rc;
+            P_mode(r)=P_cr;
+            mode=[mode; con_temp(i,:)];
+            i_mode=[i_mode; r];
+            val=(CS_graph(:,r)<1) & val;
+        else
+            val(r)=0;
+        end
+        %Nosakam atlikušos iespējamos linkus
+        con_temp=con(val,:);
+    end
+    if isempty(mode_all)
+        mode_all{1}=mode;
+        fp=sum(sum(mode(:,1:3)));
+        fp_all=fp;
+        z_c=0;
+    else
+        test=0;
+%         for n=1:size(mode_all,2);
+%                 counts1=counts1+1;
+%                 if isempty(setxor(mode_all{n},mode,'rows'))
+%                     test=1;
+%                     break
+%                 end
+%         end
+        fp=sum(sum(mode(:,1:3)));
+        if max(fp_all==fp)==1;
+            %parbaudam tikai tos, kuriem fingerprints ir vienāds. Ja
+            %summa ir dažāda, shemas nevar būt vienādas pat ja linku
+            %izkārtojums cits.
+            kurs=find(fp_all==fp);
+            for nn=1:length(kurs)
+                n=kurs(nn);
+                if size(mode_all{n},1)==size(mode,1)
+                       counts1=counts1+1;
+                    if isempty(setxor(mode_all{n},mode,'rows'))
+                        
+                        test=1;
+                        break
+                    end
+                end
+            end
+        end
+        
+        
+        
+        if test==0
+            mode_all{size(mode_all,2)+1}=sortrows(mode);
+            fp_all=[fp_all fp];
+            end_counter=[end_counter 1];
+            z_c=0;
+        else
+            end_counter=[end_counter 0];
+            z_c=z_c+1;
+        end
+    end
+end
+summa=[];
+for x=1:100:length(end_counter)-99;
+    summa=[summa sum(end_counter(x:x+99))];
+end
+%summa=[summa zeros(1,30-length(summa))];
+%size(summa)
+% for k=1:size(mode_all,2)
+%     for kk=1:size(mode_all{k},1)
+%         mode_all{k}(kk,4:6)=[mode_all{k}(kk,1) Net.node(mode_all{k}(kk,1)).transmit_pow 0];
+%        % mode_all{k}(kk,4:5)=[con(1,1) Net.node(mode_all{k}(kk,1)).transmit_pow];
+%         
+%     end
+% end
+
+end
+
+
+##### SOURCE END #####
+--></body></html>

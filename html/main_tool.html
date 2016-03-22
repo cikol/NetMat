@@ -1,0 +1,911 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>main_tool</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-02-23"><meta name="DC.source" content="main_tool.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">environment</a></li><li><a href="#3">Ievades parametri</a></li><li><a href="#5">Atkartojumi</a></li><li><a href="#8">create nodes</a></li><li><a href="#9">Create network</a></li><li><a href="#11">find neighbours</a></li><li><a href="#13">select path sets</a></li><li><a href="#14">raksturot izveletos ce&#316;u komplektus</a></li><li><a href="#16">Marsrutu komplektu atlase analizei</a></li><li><a href="#17">Method</a></li><li><a href="#18">tiek mekletas parraides shemas</a></li><li><a href="#19">iegustam rate matricas</a></li><li><a href="#20">capacity</a></li><li><a href="#24">rezulati uz texta failu</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> result_all=main_tool(alpha,paths,N,gain,system,name)
+</pre><h2>environment<a name="2"></a></h2><pre class="codeinput"><span class="keyword">if</span> strcmp(system,<span class="string">'local'</span>)
+    addpath(<span class="string">'d:/ownCloud/matlab/lpsolve'</span>);
+    addpath(<span class="string">'d:/ownCloud/matlab/tools'</span>);
+    laiks=clock;
+    folderName=sprintf(<span class="string">'/tmp/results_%d_%d_%d_%d_%d_%d'</span>,laiks(1),laiks(2),laiks(3),laiks(4),laiks(5),round(laiks(6)));
+    mkdir(folderName);
+<span class="keyword">elseif</span> strcmp(system,<span class="string">'hpc'</span>)
+    addpath(<span class="string">'/opt/exp_soft/lp_solve'</span>);
+    <span class="comment">%setenv('LD_LIBRARY_PATH', [getenv('LD_LIBRARY_PATH') ';/opt/exp_soft/lp_solve/lib']);</span>
+    folderName=sprintf(<span class="string">'%s/%s'</span>,getenv(<span class="string">'MDCE_STORAGE_LOCATION'</span>),getenv(<span class="string">'MDCE_TASK_LOCATION'</span>));
+    mkdir(folderName);
+    cd(folderName)
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using main_tool (line 3)
+Not enough input arguments.
+</pre><h2>Ievades parametri<a name="3"></a></h2><pre class="codeinput">p=1;
+lim_sets=1;
+ns2=<span class="string">'no'</span>;
+matlab=<span class="string">'yes'</span>;
+fading=<span class="string">'fading2'</span>;
+max_com_nodes=0;
+max_intersects=0;
+<span class="keyword">if</span> N&gt;1
+    <span class="keyword">if</span> strcmp(gain,<span class="string">'yes'</span>)
+        G=N^2; <span class="comment">%Lai d_tx b&#363;tu reiz 2, N ir 16</span>
+        antenna_in={ <span class="string">'array'</span>,G,<span class="string">'array'</span>,1,10,<span class="string">'full'</span>,<span class="string">''</span>};
+    <span class="keyword">else</span>
+        G=1;
+        <span class="comment">%format: antenna_type, gain, PCS_type, nr,ic_scheme,ic_strategy</span>
+        antenna_in={
+            <span class="comment">% 'omni',1,'omni',0,1,'','';</span>
+            <span class="comment">%'array',1,'omni',1,2,'full','';</span>
+                 <span class="string">'array'</span>,1,<span class="string">'array'</span>,1,3,<span class="string">'full'</span>,<span class="string">''</span>;
+          <span class="comment">%  'array',1,'omni',3,4,'full','';</span>
+          <span class="comment">%  'array',1,'array',3,5,'full','';</span>
+           <span class="comment">%      'array',1,'omni',10,6,'full','';</span>
+            <span class="comment">%   'array',1,'omni',10,7,'obic','';</span>
+                 <span class="string">'dof'</span>,1,<span class="string">'omni'</span>,0,8,<span class="string">'full'</span>,<span class="string">''</span>;
+            <span class="comment">%  'dof',1,'omni',0,9,'obic','';</span>
+            <span class="string">'mimo'</span>,1,<span class="string">'omni'</span>,0,11,<span class="string">''</span>,<span class="string">''</span>;
+            <span class="comment">%  'dof',1,'omni',0,12,'full','path';</span>
+            <span class="comment">%  'dof',1,'omni',0,13,'obic','path';</span>
+            <span class="comment">%'mimo',1,'omni',0,14,'','';</span>
+            };
+    <span class="keyword">end</span>
+<span class="keyword">elseif</span> N==1;
+    G=1;
+    antenna_in={<span class="string">'omni'</span>,G,<span class="string">'omni'</span>,0,1,<span class="string">''</span>,<span class="string">''</span>};
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> strcmp(fading,<span class="string">'fading1'</span>)
+    tx_d=250; <span class="comment">% s&#257;kotn&#275;jie apr&#275;&#311;ini veikti pie &#353;&#299;s jut&#299;bas</span>
+<span class="keyword">else</span>
+    P_tx=0.1;
+    fc=2.45e9;
+    lambda = physconst(<span class="string">'LightSpeed'</span>)/fc;
+    d0=1; K=(lambda^2)/(4*pi*d0)^2;
+    tx_d=(P_tx*G*K/3.1623e-11)^(1/alpha);
+    tx_d_no_gain=(P_tx*K/3.1623e-11)^(1/alpha);
+<span class="keyword">end</span>
+sel_c_v=[2 3 4];<span class="comment">%vector of path selection criterias</span>
+<span class="comment">%Cs_vector=[2*tx_d]; % for interpath</span>
+<span class="comment">%Cs_vector=[1:0.1:3]*tx_d; %optimal CS</span>
+Cs_vector=[0 2*tx_d]; <span class="comment">% for directionl</span>
+<span class="comment">%Cs_vector=[0]; % for directionl</span>
+<span class="comment">%Cs_vector=[1.5*tx_d 1.75*tx_d 2*tx_d 2.25*tx_d 2.5*tx_d]; %for correlation</span>
+<span class="comment">%noise_scale_vector=[10 1 0.1];% noise floor=1.6016e-013 W;</span>
+noise_scale_vector=[1];<span class="comment">% noise floor=1.6016e-013 W;</span>
+<span class="comment">%topology='regular';</span>
+<span class="comment">%topology='linear';</span>
+topology=<span class="string">'random'</span>;
+</pre><pre class="codeinput">[field,nodes]=gen_field(topology,tx_d_no_gain);
+</pre><h2>Atkartojumi<a name="5"></a></h2><pre class="codeinput">k=1;
+positions=[];
+time1=clock;
+<span class="keyword">while</span> k&lt;=100
+    [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,fading,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+    disp(sprintf(<span class="string">'%g-%g-%g-%g-%g-%g:k=%d,alpha=%d,field=%d,paths=%d,N=%d,nodes=%d'</span>,clock,k,alpha,field,paths,N,nodes));
+    <span class="comment">%if  max(max(result))~=0 || nodes&gt;=180</span>
+    <span class="keyword">if</span>  max(max(result))~=0
+        result_all(p:p+(size(result,1))-1,:)=result;
+        p=p+size(result,1);
+        k=k+1;
+        [field,nodes]=gen_field(topology,tx_d_no_gain);
+        time1=clock;
+    <span class="keyword">else</span>
+        nodes=nodes+1;
+
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+<span class="comment">%cd ..</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+
+<span class="keyword">function</span> [field,nodes]=gen_field(topology,tx_d_no_gain)
+rng(<span class="string">'shuffle'</span>)
+<span class="keyword">if</span> strcmp(topology,<span class="string">'random'</span>)
+    field=round(tx_d_no_gain*4+rand()*tx_d_no_gain*4);
+    <span class="comment">%field=round(tx_d_no_gain*8);</span>
+    nodes=ceil((field/(tx_d_no_gain*0.6))^2);
+<span class="keyword">elseif</span> strcmp(topology,<span class="string">'regular'</span>)
+    nodes=49;
+    <span class="comment">%field=tx_d_no_gain*(sqrt(nodes)-1);</span>
+    field=tx_d_no_gain/sqrt(2)*(sqrt(nodes)-1);
+<span class="keyword">end</span>
+<span class="keyword">end</span>
+
+
+<span class="keyword">function</span> [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,fading,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+</pre><pre class="codeinput">rng(<span class="string">'shuffle'</span>)
+tic
+nr=0;
+tx_pow=0.1;
+P_tx=tx_pow;
+fc=2.45e9;
+lambda = physconst(<span class="string">'LightSpeed'</span>)/fc;
+d0=1; K=(lambda^2)/(4*pi*d0)^2;
+new_net=1;
+proto=<span class="string">'smr_mod'</span>;
+</pre><h2>create nodes<a name="8"></a></h2><pre class="codeinput"><span class="keyword">if</span> new_net~=0
+    <span class="keyword">for</span> n=1:nodes
+
+        Net.node(n)=create_node(n,tx_pow);
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+<span class="keyword">if</span> N~=1
+    <span class="keyword">for</span> n=1:nodes
+
+        N_temp=ceil(rand().*(N-1)+1);
+        N_temp=N;
+        Net.node(n).directivity=create_node_directivity(Net,N_temp);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>Create network<a name="9"></a></h2><pre class="codeinput">no_connectivity=1;
+tries=0;
+<span class="keyword">while</span> no_connectivity==1 &amp; tries&lt;100
+</pre><pre class="codeinput">    tries=tries+1;
+    <span class="comment">%set node posstiontions</span>
+    Net=new_network(Net,topology,positions,fading,<span class="string">'transceivers1'</span>,<span class="string">'array'</span>,<span class="string">'perfect'</span>,[nodes field/2 tx_d],[tx_pow 1e6],[1 alpha 0]);
+</pre><h2>find neighbours<a name="11"></a></h2><pre class="codeinput">    [Net,no_connectivity]=find_neighbours(Net,tx_d);
+</pre><pre class="codeinput"><span class="keyword">end</span>
+<span class="keyword">if</span> no_connectivity==1;
+    result=zeros(1,39);
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+</pre><h2>select path sets<a name="13"></a></h2><pre class="codeinput">path_sets=[];
+r=1;
+limit1=0;
+route=0;
+<span class="keyword">while</span> isempty(path_sets) &amp; new_net~=0 &amp; limit1&lt;20
+    d=0;
+    <span class="keyword">while</span> d&lt;max(max(Net.distances))/1.5
+        s_id=ceil(rand()*nodes);
+        d_id=ceil(rand()*nodes);
+        d=Net.distances(s_id,d_id);
+    <span class="keyword">end</span>
+
+    <span class="comment">%routing</span>
+    disp(sprintf(<span class="string">'%.2g: routing... %d'</span>,toc,limit1))
+    <span class="keyword">if</span> strcmp(proto,<span class="string">'smr'</span>)
+    [Net,route]=find_route_smr(Net,s_id,d_id);
+    <span class="keyword">elseif</span> strcmp(proto,<span class="string">'smr_mod'</span>)
+    [Net,route]=find_route_smr_mod(Net,s_id,d_id);
+    <span class="keyword">elseif</span> strcmp(proto,<span class="string">'aodvm'</span>)
+    [Net,route]=find_route_aodvm(Net,s_id,d_id);
+    <span class="keyword">end</span>
+    <span class="comment">% meg=meg+1;</span>
+    <span class="comment">%[Net, route]=find_route10(Net,s_id,d_id);</span>
+    disp(sprintf(<span class="string">'%.2g: found %d routes\n'</span>, toc,route));
+
+    <span class="comment">%find path sets</span>
+    <span class="keyword">if</span> route&gt;=paths
+        disp(sprintf(<span class="string">'%.2g: finding path sets...'</span>,toc))
+        path_sets=path_selection(Net,s_id,paths,max_com_nodes,max_intersects);
+
+        disp(sprintf(<span class="string">'%.2g: found %d sets for %d paths\n'</span>, toc,size(path_sets,1),paths));
+    <span class="keyword">end</span>
+    limit1=limit1+1;
+<span class="keyword">end</span>
+<span class="keyword">if</span> isempty(path_sets)
+    result=zeros(1,39);
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+Net.s_d_id=[s_id d_id];
+
+<span class="comment">%rng=1;</span>
+
+Net.id=round(rand()*1000000);
+positions=Net.positions;
+name2=sprintf(<span class="string">'%s/positions_%05.f.mat'</span>,folderName,Net.id);
+<span class="comment">%save(name2,'positions');</span>
+<span class="comment">%meg=0;</span>
+</pre><h2>raksturot izveletos ce&#316;u komplektus<a name="14"></a></h2><pre class="codeinput">[character]=net_structure_character(Net,path_sets);
+
+
+time2=clock;
+t1=etime(time2,time1);
+res=zeros(1,10);
+<span class="keyword">for</span> sel_c=sel_c_v
+</pre><pre class="codeinput"><span class="comment">% if Net.distances&lt;4*tx_d</span>
+<span class="comment">%     sel_p=3;</span>
+<span class="comment">% else</span>
+<span class="comment">%     sel_p=2;</span>
+<span class="comment">% end</span>
+<span class="comment">%sel_p=4;</span>
+</pre><h2>Marsrutu komplektu atlase analizei<a name="16"></a></h2><pre class="codeinput">clear <span class="string">sets</span>
+[sets]=select_path_sets(path_sets,sel_c,character,lim_sets);
+</pre><h2>Method<a name="17"></a></h2><pre class="codeinput"><span class="comment">%res=zeros(length(sets),10);</span>
+
+<span class="keyword">for</span> set=sets
+    <span class="comment">%CS_opt=character(set,11);</span>
+    <span class="comment">%Cs_vector=[Cs_vector CS_opt];</span>
+    tic
+    clear <span class="string">con</span>
+    con=connection_list2(Net,s_id,path_sets,set);
+
+    <span class="comment">%draw rotues</span>
+    <span class="comment">%fig=figure('Visible','off');</span>
+    <span class="comment">%draw_routes(Net,con,fig);</span>
+    <span class="comment">%jpg_name=sprintf('%s/%05.f.jpg',folderName,Net.id);</span>
+    <span class="comment">%saveas(fig,jpg_name,'jpg');</span>
+    <span class="comment">%close(fig);</span>
+    <span class="keyword">for</span> an=1:size(antenna_in,1)
+        <span class="comment">%size(antenna_in,1)</span>
+        antena_type=antenna_in{an,1};G_antenna=antenna_in{an,2};cs_type=antenna_in{an,3};w=antenna_in{an,4};a_t=antenna_in{an,5};ic_scheme=antenna_in(an,6);ic_strat=antenna_in(an,7);
+        antenna_in(an,:)
+        Net.type=cs_type;
+        Net.G=G_antenna;
+        <span class="keyword">for</span> scale=1:length(noise_scale_vector)
+            <span class="comment">%  length(noise_scale_vector)</span>
+            Net=set_noise(Net,noise_scale_vector(scale));
+            noise=Net.thermal_noise_vector(1);
+
+            <span class="keyword">for</span> Cs_i=1:length(Cs_vector)
+                <span class="comment">%     length(Cs_vector)</span>
+                Cs=Cs_vector(Cs_i);
+                <span class="comment">%Apr&#275;&#311;ina P_cs slieksni</span>
+                <span class="keyword">if</span> strcmp(Net.fading,<span class="string">'fading1'</span>)
+                    P_cst=(P_tx*G_antenna*lambda^2)/((4*pi*Cs)^2);
+                <span class="keyword">elseif</span> strcmp(Net.fading,<span class="string">'fading2'</span>)
+                    P_cst=P_tx*G_antenna*K/((Cs/d0)^(alpha));
+                <span class="keyword">end</span>
+
+                <span class="keyword">if</span> strcmp(matlab,<span class="string">'yes'</span>)
+</pre><h2>tiek mekletas parraides shemas<a name="18"></a></h2><pre class="codeinput">                    disp(sprintf(<span class="string">'%.2g: Finding schemes...'</span>,toc));
+                    [mode,counts]=find_schemes(Net,con,P_cst);
+                    [mode_max_1path]=find_schemes(Net,con(con(:,3)==1,:),Inf);
+                    schemes=size(mode,2);
+                    disp(sprintf(<span class="string">'%.2g: Found %d schemes in %d iterations\n'</span>, toc,schemes, counts));
+</pre><h2>iegustam rate matricas<a name="19"></a></h2><pre class="codeinput">                    disp(sprintf(<span class="string">'%0.2g: calculate rate vectors...'</span>,toc))
+                    clear <span class="string">R</span> <span class="string">rates</span> <span class="string">R_max</span> <span class="string">rates_max</span>;
+                    p=1;
+                    <span class="comment">%R=sparse(zeros(paths*Net.size*(Net.size-1),schemes));</span>
+                    <span class="keyword">for</span> k=1:size(mode,2)
+                        [rates(p:p+(size(mode{k},1))-1,:), R(:,k)]=rate_vector(Net,mode{k},<span class="string">'perfect'</span>,antena_type,paths,[],ic_scheme,w,ic_strat);
+                        p=p+size(mode{k},1);
+                    <span class="keyword">end</span>
+                    <span class="comment">%P&#257;rbaude vai visi linki ir iek&#316;auti sh&#275;m&#257;s</span>
+                    <span class="keyword">if</span> min(rates(:,4))==0
+                        R=R*0;
+                        error(<span class="string">'SINR&lt;2.5'</span>)
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> size(unique(rates(:,1:3),<span class="string">'rows'</span>),1)~=size(con,1)
+                        error(<span class="string">'K&#316;&#363;da p&#257;rraides sh&#275;mu izveid&#275;'</span>)
+                    <span class="keyword">end</span>
+
+                    <span class="comment">%%calculate Rate matrix of maximum capacity for 1 path</span>
+                    p=1;
+                    <span class="keyword">for</span> k_max=1:size(mode_max_1path,2)
+                        [rates_max(p:p+(size(mode_max_1path{k_max},1))-1,:), R_max(:,k_max)]=rate_vector(Net,mode_max_1path{k_max},<span class="string">'perfect'</span>,<span class="string">'ideal'</span>,paths,[]);
+                        p=p+size(mode_max_1path{k_max},1);
+                    <span class="keyword">end</span>
+
+                    <span class="keyword">try</span>
+                        R_nz=R(~all(R==0,2),:); <span class="comment">%non zero rows</span>
+                        R_max_nz=R_max(~all(R_max==0,2),:); <span class="comment">%non zero rows</span>
+                    <span class="keyword">catch</span>
+                        fprintf(<span class="string">'Out of memory...'</span>)
+                        size(R)
+                        result=zeros(1,39);
+                        <span class="keyword">return</span>
+                    <span class="keyword">end</span>
+
+
+                    disp(sprintf(<span class="string">'%.2g: finish rate matrix'</span>,toc));
+</pre><h2>capacity<a name="20"></a></h2><pre>                  C=uniform_capacity(R_nz);</pre><pre class="codeinput">                    [C_m_u,~]=max_flow(nodes,con,R_nz,paths,<span class="string">'uniform'</span>);
+                    [C_m_f,~]=max_flow(nodes,con,R_nz,paths,<span class="string">'flows'</span>);
+                    <span class="comment">%C_max=uniform_capacity(R_max_nz);</span>
+                    <span class="comment">%                [C.*paths;                 C_m_u;                 C_m_f;                 ones(1,5).*C_max]</span>
+
+
+                    <span class="comment">%avg_hops=distance(set,size(distance,2)-2);</span>
+                    <span class="comment">%interfering_pairs=distance(set,size(distance,2)-1);</span>
+                    <span class="comment">%avg_interpath_distance=round(distance(set,size(distance,2)));</span>
+                   <span class="comment">% C_agr=paths*C;</span>
+                 <span class="comment">%   C_agr_proc=round(C_agr/C_max*100);</span>
+                    nr=nr+1;
+                    t2=toc;
+</pre><pre class="codeinput">                <span class="keyword">else</span>
+                    nr=nr+1;
+                    C_max=0; C_agr_proc=0;  C_m_u=0; C_m_f=0;t2=0;
+                <span class="keyword">end</span>
+
+
+                <span class="keyword">if</span> N==1 &amp;&amp; strcmp(ns2,<span class="string">'yes'</span>)
+                    [ns_nodes,s_ids,d_ids]=routes_ns2(Net,folderName,path_sets,set,s_id,paths);
+                    position_ns2(Net,folderName,field,s_id,paths,ns_nodes);
+
+                    <span class="keyword">if</span> paths~=1
+                        <span class="comment">%co=npermutek([1 1],paths);</span>
+                        co=ones(1,paths);
+                    <span class="keyword">else</span>
+                        co=1;
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> strcmp(system,<span class="string">'local'</span>)
+                        res=run_ns2_5(Net,folderName,s_ids,d_ids,paths,P_cst,nr,co,res);
+                    <span class="keyword">elseif</span> strcmp(system,<span class="string">'hpc'</span>)
+                        res=run_ns2_5_cluster(Net,s_ids,d_ids,paths,P_cst,nr,co,res);
+                    <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+
+                <span class="keyword">if</span> strcmp(cs_type,<span class="string">'omni'</span>);cs_t=1;
+                <span class="keyword">elseif</span> strcmp(cs_type,<span class="string">'array'</span>);cs_t=2;
+                <span class="keyword">end</span>
+                result(r,1)=Net.id;
+                result(r,2)=nodes;
+                result(r,3)=field;
+                result(r,4)=s_id;
+                result(r,5)=d_id;
+                result(r,6)=paths;
+                result(r,7)=N;
+                result(r,8)=w;
+                result(r,9)=G_antenna;
+                result(r,10)=0;
+                result(r,11)=0;<span class="comment">%C*paths; %C_agr</span>
+                result(r,12)=alpha;
+                result(r,13)=sel_c;
+                result(r,14)=character(set,5); <span class="comment">%num_of_nodes;</span>
+                <span class="comment">%result(r,15)=character(set,7); %shared_links;</span>
+                result(r,15)=size(path_sets,1); <span class="comment">% mar&#353;rutu komplektu skaits;</span>
+                <span class="comment">%result(r,16)=character(set,6); %num_of_links;</span>
+                result(r,16)=character(set,14); <span class="comment">%s_d_hops</span>
+                result(r,17)=a_t; <span class="comment">%antenna type</span>
+                result(r,18)=character(set,2); <span class="comment">%avg_hops</span>
+                result(r,19)=character(set,4); <span class="comment">%max_hops</span>
+                result(r,20)=character(set,3); <span class="comment">%min_hops;</span>
+                result(r,21)=character(set,1); <span class="comment">%source_dest_dist</span>
+                result(r,22)=character(set,11); <span class="comment">%convex</span>
+                result(r,23)=character(set,13); <span class="comment">%angle</span>
+                result(r,24)=character(set,9); <span class="comment">%set_dist_min</span>
+                result(r,25)=character(set,10); <span class="comment">%set_dist_max</span>
+                result(r,26)=t1; <span class="comment">%laiks</span>
+                result(r,27)=cs_t; <span class="comment">%cs_type</span>
+                result(r,28)=tx_d;
+                result(r,29)=Cs;
+                result(r,30)=10*log10(P_cst/0.001);
+                result(r,31)=10*log10(noise/0.001);
+                result(r,32)=C_m_u;
+                result(r,33)=C_m_f;
+                result(r,34)=t2; <span class="comment">%laiks</span>
+                result(r,35)=0; <span class="comment">% NS-2 cbr</span>
+                result(r,36)=0; <span class="comment">% NS-2 delay</span>
+                result(r,37)=0; <span class="comment">% NS-2 delay last</span>
+                result(r,38)=0; <span class="comment">% NS-2 jitter</span>
+                result(r,39)=0; <span class="comment">% NS-2 time</span>
+                <span class="comment">%result(r,:)=[Net.id nodes field s_id d_id paths N tx_d Cs 10*log10(P_cst/0.001) 10*log10(noise/0.001) character(set,:) C*paths C_m_u C_m_f C_max 0 0 0 0 0 0 0];</span>
+                r=r+1;
+                <span class="comment">% toc;</span>
+                <span class="comment">%[sel_p character(set,2) character(set,10) Cs C_m_u]</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">if</span> N==1 &amp;&amp; strcmp(ns2,<span class="string">'yes'</span>)
+    <span class="comment">%co=npermutek([0.5 1],paths);</span>
+    <span class="keyword">if</span> strcmp(system,<span class="string">'local'</span>)
+        res=NS2_wait_results(res,folderName,co);
+    <span class="keyword">elseif</span> strcmp(system,<span class="string">'hpc'</span>)
+        res=NS2_wait_results_cluster(res,co);
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> max(res(:,5))==0
+        <span class="comment">% error('Nav rezult&#257;tu no klastera')</span>
+    <span class="keyword">else</span>
+        <span class="comment">%load(res_file)</span>
+
+        <span class="keyword">for</span> scen=1:size(res,1)
+            result_l=size(result,2);
+            result(scen,result_l-4:result_l)=res(scen,[3 6 7 8 10]);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>rezulati uz texta failu<a name="24"></a></h2><pre class="codeinput"><span class="keyword">if</span> strcmp(system,<span class="string">'hpc'</span>)
+    txtfilename=sprintf(<span class="string">'/home/ciko/matlab/%s_%s'</span>,date,name);
+    <span class="keyword">try</span>
+        save(txtfilename,<span class="string">'result'</span>,<span class="string">'-ascii'</span>, <span class="string">'-tabs'</span> ,<span class="string">'-append'</span>)
+        <span class="comment">%    break;</span>
+    <span class="keyword">catch</span>
+        fprintf(<span class="string">'error to put in file, retry...'</span>)
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function result_all=main_tool(alpha,paths,N,gain,system,name)
+%% environment
+if strcmp(system,'local')
+    addpath('d:/ownCloud/matlab/lpsolve');    
+    addpath('d:/ownCloud/matlab/tools');
+    laiks=clock;
+    folderName=sprintf('/tmp/results_%d_%d_%d_%d_%d_%d',laiks(1),laiks(2),laiks(3),laiks(4),laiks(5),round(laiks(6)));
+    mkdir(folderName);
+elseif strcmp(system,'hpc')
+    addpath('/opt/exp_soft/lp_solve');
+    %setenv('LD_LIBRARY_PATH', [getenv('LD_LIBRARY_PATH') ';/opt/exp_soft/lp_solve/lib']);
+    folderName=sprintf('%s/%s',getenv('MDCE_STORAGE_LOCATION'),getenv('MDCE_TASK_LOCATION'));
+    mkdir(folderName);
+    cd(folderName)
+end
+
+%% Ievades parametri
+p=1;
+lim_sets=1;
+ns2='no';
+matlab='yes';
+fading='fading2';
+max_com_nodes=0;
+max_intersects=0;
+if N>1
+    if strcmp(gain,'yes')
+        G=N^2; %Lai d_tx būtu reiz 2, N ir 16
+        antenna_in={ 'array',G,'array',1,10,'full',''};
+    else
+        G=1;
+        %format: antenna_type, gain, PCS_type, nr,ic_scheme,ic_strategy
+        antenna_in={
+            % 'omni',1,'omni',0,1,'','';
+            %'array',1,'omni',1,2,'full','';
+                 'array',1,'array',1,3,'full','';
+          %  'array',1,'omni',3,4,'full','';
+          %  'array',1,'array',3,5,'full','';
+           %      'array',1,'omni',10,6,'full','';
+            %   'array',1,'omni',10,7,'obic','';
+                 'dof',1,'omni',0,8,'full','';
+            %  'dof',1,'omni',0,9,'obic','';
+            'mimo',1,'omni',0,11,'','';
+            %  'dof',1,'omni',0,12,'full','path';
+            %  'dof',1,'omni',0,13,'obic','path';
+            %'mimo',1,'omni',0,14,'','';
+            };
+    end
+elseif N==1;
+    G=1;
+    antenna_in={'omni',G,'omni',0,1,'',''};
+end
+
+if strcmp(fading,'fading1')
+    tx_d=250; % sākotnējie aprēķini veikti pie šīs jutības
+else
+    P_tx=0.1;
+    fc=2.45e9;
+    lambda = physconst('LightSpeed')/fc;
+    d0=1; K=(lambda^2)/(4*pi*d0)^2;
+    tx_d=(P_tx*G*K/3.1623e-11)^(1/alpha);
+    tx_d_no_gain=(P_tx*K/3.1623e-11)^(1/alpha);
+end
+sel_c_v=[2 3 4];%vector of path selection criterias
+%Cs_vector=[2*tx_d]; % for interpath
+%Cs_vector=[1:0.1:3]*tx_d; %optimal CS
+Cs_vector=[0 2*tx_d]; % for directionl
+%Cs_vector=[0]; % for directionl
+%Cs_vector=[1.5*tx_d 1.75*tx_d 2*tx_d 2.25*tx_d 2.5*tx_d]; %for correlation
+%noise_scale_vector=[10 1 0.1];% noise floor=1.6016e-013 W;
+noise_scale_vector=[1];% noise floor=1.6016e-013 W;
+%topology='regular';
+%topology='linear';
+topology='random';
+
+%%
+[field,nodes]=gen_field(topology,tx_d_no_gain);
+
+
+%% Atkartojumi
+k=1;
+positions=[];
+time1=clock;
+while k<=100
+    [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,fading,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+    disp(sprintf('%g-%g-%g-%g-%g-%g:k=%d,alpha=%d,field=%d,paths=%d,N=%d,nodes=%d',clock,k,alpha,field,paths,N,nodes));
+    %if  max(max(result))~=0 || nodes>=180
+    if  max(max(result))~=0
+        result_all(p:p+(size(result,1))-1,:)=result;
+        p=p+size(result,1);
+        k=k+1;
+        [field,nodes]=gen_field(topology,tx_d_no_gain);
+        time1=clock;
+    else
+        nodes=nodes+1;
+        
+    end
+    
+end
+%cd ..
+end
+
+function [field,nodes]=gen_field(topology,tx_d_no_gain)
+rng('shuffle')
+if strcmp(topology,'random')
+    field=round(tx_d_no_gain*4+rand()*tx_d_no_gain*4);
+    %field=round(tx_d_no_gain*8);
+    nodes=ceil((field/(tx_d_no_gain*0.6))^2);
+elseif strcmp(topology,'regular')
+    nodes=49;
+    %field=tx_d_no_gain*(sqrt(nodes)-1);
+    field=tx_d_no_gain/sqrt(2)*(sqrt(nodes)-1);
+end
+end
+
+
+function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,fading,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+rng('shuffle')
+tic
+nr=0;
+tx_pow=0.1;
+P_tx=tx_pow;
+fc=2.45e9;
+lambda = physconst('LightSpeed')/fc;
+d0=1; K=(lambda^2)/(4*pi*d0)^2;
+new_net=1;
+proto='smr_mod';
+%% create nodes
+if new_net~=0
+    for n=1:nodes
+        
+        Net.node(n)=create_node(n,tx_pow);
+        
+    end
+end
+if N~=1
+    for n=1:nodes
+        
+        N_temp=ceil(rand().*(N-1)+1);
+        N_temp=N;
+        Net.node(n).directivity=create_node_directivity(Net,N_temp);
+    end
+end
+
+
+%% Create network
+no_connectivity=1;
+tries=0;
+while no_connectivity==1 & tries<100
+    tries=tries+1;
+    %set node posstiontions
+    Net=new_network(Net,topology,positions,fading,'transceivers1','array','perfect',[nodes field/2 tx_d],[tx_pow 1e6],[1 alpha 0]);
+    %% find neighbours
+    [Net,no_connectivity]=find_neighbours(Net,tx_d);
+end
+if no_connectivity==1;
+    result=zeros(1,39);
+    return
+end
+%% select path sets
+path_sets=[];
+r=1;
+limit1=0;
+route=0;
+while isempty(path_sets) & new_net~=0 & limit1<20
+    d=0;
+    while d<max(max(Net.distances))/1.5
+        s_id=ceil(rand()*nodes);
+        d_id=ceil(rand()*nodes);
+        d=Net.distances(s_id,d_id);
+    end
+    
+    %routing
+    disp(sprintf('%.2g: routing... %d',toc,limit1))
+    if strcmp(proto,'smr')
+    [Net,route]=find_route_smr(Net,s_id,d_id);
+    elseif strcmp(proto,'smr_mod')
+    [Net,route]=find_route_smr_mod(Net,s_id,d_id);
+    elseif strcmp(proto,'aodvm')
+    [Net,route]=find_route_aodvm(Net,s_id,d_id);
+    end
+    % meg=meg+1;
+    %[Net, route]=find_route10(Net,s_id,d_id);
+    disp(sprintf('%.2g: found %d routes\n', toc,route));
+    
+    %find path sets
+    if route>=paths
+        disp(sprintf('%.2g: finding path sets...',toc))
+        path_sets=path_selection(Net,s_id,paths,max_com_nodes,max_intersects);
+        
+        disp(sprintf('%.2g: found %d sets for %d paths\n', toc,size(path_sets,1),paths));
+    end
+    limit1=limit1+1;
+end
+if isempty(path_sets)
+    result=zeros(1,39);
+    return
+end
+Net.s_d_id=[s_id d_id];
+
+%rng=1;
+
+Net.id=round(rand()*1000000);
+positions=Net.positions;
+name2=sprintf('%s/positions_%05.f.mat',folderName,Net.id);
+%save(name2,'positions');
+%meg=0;
+%% raksturot izveletos ceļu komplektus
+[character]=net_structure_character(Net,path_sets);
+
+
+time2=clock;
+t1=etime(time2,time1);
+res=zeros(1,10);
+for sel_c=sel_c_v
+% if Net.distances<4*tx_d
+%     sel_p=3;
+% else
+%     sel_p=2;
+% end
+%sel_p=4;
+%% Marsrutu komplektu atlase analizei
+clear sets
+[sets]=select_path_sets(path_sets,sel_c,character,lim_sets);
+
+%% Method
+%res=zeros(length(sets),10);
+
+for set=sets
+    %CS_opt=character(set,11);
+    %Cs_vector=[Cs_vector CS_opt];
+    tic
+    clear con
+    con=connection_list2(Net,s_id,path_sets,set);
+    
+    %draw rotues
+    %fig=figure('Visible','off');
+    %draw_routes(Net,con,fig);
+    %jpg_name=sprintf('%s/%05.f.jpg',folderName,Net.id);
+    %saveas(fig,jpg_name,'jpg');
+    %close(fig);
+    for an=1:size(antenna_in,1)
+        %size(antenna_in,1)
+        antena_type=antenna_in{an,1};G_antenna=antenna_in{an,2};cs_type=antenna_in{an,3};w=antenna_in{an,4};a_t=antenna_in{an,5};ic_scheme=antenna_in(an,6);ic_strat=antenna_in(an,7);
+        antenna_in(an,:)
+        Net.type=cs_type;
+        Net.G=G_antenna;
+        for scale=1:length(noise_scale_vector)
+            %  length(noise_scale_vector)
+            Net=set_noise(Net,noise_scale_vector(scale));
+            noise=Net.thermal_noise_vector(1);
+            
+            for Cs_i=1:length(Cs_vector)
+                %     length(Cs_vector)
+                Cs=Cs_vector(Cs_i);
+                %Aprēķina P_cs slieksni
+                if strcmp(Net.fading,'fading1')
+                    P_cst=(P_tx*G_antenna*lambda^2)/((4*pi*Cs)^2);
+                elseif strcmp(Net.fading,'fading2')
+                    P_cst=P_tx*G_antenna*K/((Cs/d0)^(alpha));
+                end
+                
+                if strcmp(matlab,'yes')
+                    %% tiek mekletas parraides shemas
+                    disp(sprintf('%.2g: Finding schemes...',toc));
+                    [mode,counts]=find_schemes(Net,con,P_cst);
+                    [mode_max_1path]=find_schemes(Net,con(con(:,3)==1,:),Inf);
+                    schemes=size(mode,2);
+                    disp(sprintf('%.2g: Found %d schemes in %d iterations\n', toc,schemes, counts));
+                    
+                    %% iegustam rate matricas
+                    disp(sprintf('%0.2g: calculate rate vectors...',toc))
+                    clear R rates R_max rates_max;
+                    p=1;
+                    %R=sparse(zeros(paths*Net.size*(Net.size-1),schemes));
+                    for k=1:size(mode,2)
+                        [rates(p:p+(size(mode{k},1))-1,:), R(:,k)]=rate_vector(Net,mode{k},'perfect',antena_type,paths,[],ic_scheme,w,ic_strat);
+                        p=p+size(mode{k},1);
+                    end
+                    %Pārbaude vai visi linki ir iekļauti shēmās
+                    if min(rates(:,4))==0
+                        R=R*0;
+                        error('SINR<2.5')
+                    end
+                    if size(unique(rates(:,1:3),'rows'),1)~=size(con,1)
+                        error('Kļūda pārraides shēmu izveidē')
+                    end
+                    
+                    %%calculate Rate matrix of maximum capacity for 1 path
+                    p=1;
+                    for k_max=1:size(mode_max_1path,2)
+                        [rates_max(p:p+(size(mode_max_1path{k_max},1))-1,:), R_max(:,k_max)]=rate_vector(Net,mode_max_1path{k_max},'perfect','ideal',paths,[]);
+                        p=p+size(mode_max_1path{k_max},1);
+                    end
+                    
+                    try
+                        R_nz=R(~all(R==0,2),:); %non zero rows
+                        R_max_nz=R_max(~all(R_max==0,2),:); %non zero rows
+                    catch
+                        fprintf('Out of memory...')
+                        size(R)
+                        result=zeros(1,39);
+                        return
+                    end
+                    
+                    
+                    disp(sprintf('%.2g: finish rate matrix',toc));
+                    %% capacity
+%                    C=uniform_capacity(R_nz);
+                    [C_m_u,~]=max_flow(nodes,con,R_nz,paths,'uniform');
+                    [C_m_f,~]=max_flow(nodes,con,R_nz,paths,'flows');
+                    %C_max=uniform_capacity(R_max_nz);
+                    %                [C.*paths;                 C_m_u;                 C_m_f;                 ones(1,5).*C_max]
+                    
+                    
+                    %avg_hops=distance(set,size(distance,2)-2);
+                    %interfering_pairs=distance(set,size(distance,2)-1);
+                    %avg_interpath_distance=round(distance(set,size(distance,2)));
+                   % C_agr=paths*C;
+                 %   C_agr_proc=round(C_agr/C_max*100);
+                    nr=nr+1;
+                    t2=toc;
+                else
+                    nr=nr+1;
+                    C_max=0; C_agr_proc=0;  C_m_u=0; C_m_f=0;t2=0;
+                end
+                              
+                
+                if N==1 && strcmp(ns2,'yes')
+                    [ns_nodes,s_ids,d_ids]=routes_ns2(Net,folderName,path_sets,set,s_id,paths);
+                    position_ns2(Net,folderName,field,s_id,paths,ns_nodes);
+                    
+                    if paths~=1
+                        %co=npermutek([1 1],paths);
+                        co=ones(1,paths);
+                    else
+                        co=1;
+                    end
+                    if strcmp(system,'local')
+                        res=run_ns2_5(Net,folderName,s_ids,d_ids,paths,P_cst,nr,co,res);
+                    elseif strcmp(system,'hpc')
+                        res=run_ns2_5_cluster(Net,s_ids,d_ids,paths,P_cst,nr,co,res);
+                    end
+            end
+               
+                
+                if strcmp(cs_type,'omni');cs_t=1;
+                elseif strcmp(cs_type,'array');cs_t=2;
+                end
+                result(r,1)=Net.id;
+                result(r,2)=nodes;
+                result(r,3)=field;
+                result(r,4)=s_id;
+                result(r,5)=d_id;
+                result(r,6)=paths;
+                result(r,7)=N;
+                result(r,8)=w;
+                result(r,9)=G_antenna;
+                result(r,10)=0;
+                result(r,11)=0;%C*paths; %C_agr
+                result(r,12)=alpha;
+                result(r,13)=sel_c;
+                result(r,14)=character(set,5); %num_of_nodes;
+                %result(r,15)=character(set,7); %shared_links;
+                result(r,15)=size(path_sets,1); % maršrutu komplektu skaits;
+                %result(r,16)=character(set,6); %num_of_links;
+                result(r,16)=character(set,14); %s_d_hops
+                result(r,17)=a_t; %antenna type
+                result(r,18)=character(set,2); %avg_hops
+                result(r,19)=character(set,4); %max_hops
+                result(r,20)=character(set,3); %min_hops;
+                result(r,21)=character(set,1); %source_dest_dist
+                result(r,22)=character(set,11); %convex
+                result(r,23)=character(set,13); %angle
+                result(r,24)=character(set,9); %set_dist_min
+                result(r,25)=character(set,10); %set_dist_max
+                result(r,26)=t1; %laiks
+                result(r,27)=cs_t; %cs_type
+                result(r,28)=tx_d;
+                result(r,29)=Cs;
+                result(r,30)=10*log10(P_cst/0.001);
+                result(r,31)=10*log10(noise/0.001);
+                result(r,32)=C_m_u;
+                result(r,33)=C_m_f;
+                result(r,34)=t2; %laiks
+                result(r,35)=0; % NS-2 cbr
+                result(r,36)=0; % NS-2 delay
+                result(r,37)=0; % NS-2 delay last
+                result(r,38)=0; % NS-2 jitter
+                result(r,39)=0; % NS-2 time
+                %result(r,:)=[Net.id nodes field s_id d_id paths N tx_d Cs 10*log10(P_cst/0.001) 10*log10(noise/0.001) character(set,:) C*paths C_m_u C_m_f C_max 0 0 0 0 0 0 0];
+                r=r+1;
+                % toc;
+                %[sel_p character(set,2) character(set,10) Cs C_m_u]
+            end
+        end
+    end
+    end
+end
+
+%%
+
+if N==1 && strcmp(ns2,'yes')
+    %co=npermutek([0.5 1],paths);
+    if strcmp(system,'local')
+        res=NS2_wait_results(res,folderName,co);
+    elseif strcmp(system,'hpc')
+        res=NS2_wait_results_cluster(res,co);
+    end
+    
+    if max(res(:,5))==0
+        % error('Nav rezultātu no klastera')
+    else
+        %load(res_file)
+        
+        for scen=1:size(res,1)
+            result_l=size(result,2);
+            result(scen,result_l-4:result_l)=res(scen,[3 6 7 8 10]);
+        end
+    end
+end
+
+%% rezulati uz texta failu
+if strcmp(system,'hpc')
+    txtfilename=sprintf('/home/ciko/matlab/%s_%s',date,name);
+    try
+        save(txtfilename,'result','-ascii', '-tabs' ,'-append')
+        %    break;
+    catch
+        fprintf('error to put in file, retry...')
+    end
+end
+end
+
+##### SOURCE END #####
+--></body></html>
