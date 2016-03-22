@@ -3,7 +3,7 @@ Network modelling tool
 
 The main function is main_tool.m
 
-## Toolbox requrements:
+## Toolbox requirements
 
 MATLAB (tested with version 2015a)
 
@@ -24,11 +24,11 @@ Execution format is:
 
 ## Input Parameters
 
-alpha - path loss exponent in radio propogation model;
+alpha - path loss exponent in radio propagation model;
 
-paths - number of simultanous paths;
+paths - number of simultaneous paths;
 
-N - number of antenna array elements, 1 is for omni-directinal transmission;
+N - number of antenna array elements, 1 is for Omni-directional transmission;
 
 system - valid values ar 'local' or 'hpc';
 
@@ -38,7 +38,7 @@ Example:
 
 [output]=main_tool(4,2,1,'local','testrun')
 
-Aditional parameters can be changed inside M-file.
+Additional parameters can be changed inside M-file.
 
 ## Understanding Output
 
@@ -46,7 +46,7 @@ output(:,1) - network id
 
 output(:,2) - number of nodes
 
-output(:,3) - size of edge of 2- dimensional squere field
+output(:,3) - size of edge of 2- dimensional square field
 
 output(:,4) - source id
 
@@ -72,7 +72,7 @@ output(:,14) - number of nodes in paths
 
 output(:,15) - number of path sets found
 
-output(:,16) - distance between souce and destination (hops)
+output(:,16) - distance between source and destination (hops)
 
 output(:,17) - id of antenna type
 
@@ -98,14 +98,14 @@ output(:,27) - carrier sense type
 
 output(:,28) - transmission distance
 
-output(:,29) - phy carrier sense distance
+output(:,29) - Phy carrier sense distance
 
-output(:,30) - phy carier sense threshold (power)
+output(:,30) - Phy carrier sense threshold (power)
 
 output(:,31) - ambient noise
 
-output(:,32) - agregated capaity (uniform)
+output(:,32) - aggregated capacity (uniform)
 
-output(:,33) - agregated capacity
+output(:,33) - aggregated capacity
 
 output(:,34) - simulation time (capacity)
