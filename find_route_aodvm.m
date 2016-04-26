@@ -1,7 +1,9 @@
 function [Net,n_of_my_routes]=find_route_aodvm(Net,s_id,d_id)
-
+rng('shuffle')
+%rng(1);
+visual='no';
 active=Net.size;
-k=0;
+
 tic
 %fig=figure('Visible','off');
 %Net.node(d_id).route{1}=[];

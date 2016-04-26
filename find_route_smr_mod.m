@@ -1,5 +1,6 @@
 function [Net, n_of_my_routes]=find_route_smr_mod(Net,s_id,d_id)
 rng('shuffle')
+%rng(1);
 visual='no';
 if strcmp(visual,'yes')
     fig=figure('Position',[969 49 944 947]);
@@ -30,16 +31,32 @@ active=Net.size;
         Net.rreq(n_id)=rreq_counter-1;% skaitîtâju samazinu par 1
         nb_list=Net.node(n_id).neighbours; %sarkasts ar mezgla n kaimiòiem
         for nb_id=nb_list % òemu pçc kârtas kaimiòu no saraksta
-            if ~ismember(nb_id,new_route)
+            %if ~ismember(nb_id,new_route)
+            if max(new_route==nb_id)==0
                 test=0;
                 if ~isempty(Net.node(nb_id).route{1}) 
                     num_nb_routes=size(Net.node(nb_id).route,2); % kaimiòa routu skaits
                         for n=1:num_nb_routes
-                            %if sum(ismember(Net.node(nb_id).route{n},new_route))>(1+max_com_nodes)
-                            if sum(ismember(Net.node(nb_id).route{n},new_route))>1
+                            bc=0;nr=1;
+                            while nr<=length(new_route) && bc<=1
+                                if find(Net.node(nb_id).route{n}==new_route(nr))
+                              %  if max(Net.node(nb_id).route{n}==new_route(nr))==1
+                                   bc=bc+1;
+                                end
+                               nr=nr+1;
+                            end
+                            if bc>1
                                 test=1;
                                 break
                             end
+                            
+                            
+                            
+                            %if sum(ismember(Net.node(nb_id).route{n},new_route))>(1+max_com_nodes)
+                            %if sum(ismember(Net.node(nb_id).route{n},new_route))>1
+                            %    test=1;
+                             %   break
+                            %end
                         end
                 else
                     num_nb_routes=0;

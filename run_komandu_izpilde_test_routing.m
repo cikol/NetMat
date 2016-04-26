@@ -1,4 +1,4 @@
-function result_all=run_komandu_izpilde_test_routing(alpha,paths,N,gain,system,name)
+function result_all=run_komandu_izpilde_test_routing(alpha,paths,N,system,name)
 %% environment
 if strcmp(system,'local')
     addpath('d:/ownCloud/matlab/lpsolve');
@@ -16,7 +16,7 @@ end
 %% Ievades parametri
 p=1;
 lim_sets=2;
-
+gain=1;
 
 ns2='no';
 matlab='yes';
@@ -38,7 +38,7 @@ matlab='yes';
 
 fading='fading2';
 max_com_nodes=0;
-max_intersects=0;
+max_intersects=100;
 if N>1
     if strcmp(gain,'yes')
         G=N^2; %Lai d_tx bûtu reiz 2, N ir 16
@@ -115,10 +115,12 @@ end
 end
 
 function [field,nodes]=gen_field(topology,tx_d_no_gain)
+rng('shuffle');
 if strcmp(topology,'random')
-    field=round(tx_d_no_gain*2+rand()*tx_d_no_gain*6);
+    field=round(tx_d_no_gain*4+rand()*tx_d_no_gain*4);
     %field=round(tx_d_no_gain*4);
     nodes=ceil((field/(tx_d_no_gain*0.6))^2);
+    %nodes=ceil((field/(tx_d_no_gain*0.3))^2);
 elseif strcmp(topology,'regular')
     nodes=49;
     %field=tx_d_no_gain*(sqrt(nodes)-1);
@@ -128,6 +130,8 @@ end
 
 
 function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,lim_sets,fading,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+%rng(1);
+rng('shuffle');
 tic
 nr=0;
 tx_pow=0.1;
@@ -160,7 +164,7 @@ tries=0;
 while no_connectivity==1 & tries<100
     tries=tries+1;
     %set node posstiontions
-    Net=new_network_1(Net,topology,positions,fading,'transceivers1','array','perfect',[nodes field/2 tx_d],[tx_pow 1e6],[1 alpha 0]);
+    Net=new_network(Net,topology,positions,fading,'transceivers1','array','perfect',[nodes field/2 tx_d],[tx_pow 1e6],[1 alpha 0]);
     %% find neighbours
     [Net,no_connectivity]=find_neighbours(Net,tx_d);
 end
@@ -198,7 +202,8 @@ for n1=1:100
     Net.s_d_id=[s_id d_id];
     
     
-    for n=1:size(proto,1)
+   % for n=1:size(proto,1)
+     for n=[2 3 6];
         route=0;
         time1=clock;
         
@@ -248,11 +253,11 @@ for n1=1:100
         shortest=min(hops);
         
         %% find path sets
-        for paths=2:4
+        for paths=2:3
             time3=clock;
             if route>=paths
                 disp(sprintf('%.2g: finding path sets...',toc))
-                path_sets=path_selection2(Net,s_id,paths,max_com_nodes,max_intersects);
+                path_sets=path_selection(Net,s_id,paths,max_com_nodes,max_intersects);
                 num_path_sets=size(path_sets,1);
                 disp(sprintf('%.2g: found %d sets for %d paths\n', toc,size(path_sets,1),paths));
                 
@@ -260,7 +265,7 @@ for n1=1:100
                 num_path_sets=0;
             end
             if num_path_sets~=0
-                [character]=net_structure_character_new(Net,path_sets);
+                [character]=net_structure_character(Net,path_sets);
                 %min_max_distance
                 huls=character(:,10); %set dist max
                 min_dist=min(huls);

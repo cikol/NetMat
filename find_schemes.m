@@ -1,5 +1,6 @@
 function [mode_all,counts,summa]=find_schemes(Net,con, P_cst)
 rng('shuffle')
+%rng(1);
 if P_cst~=Inf;
     type=Net.type;
 else
@@ -92,7 +93,8 @@ while z_c<tries*size_L
     while ~isempty(con_temp)
         size_L_temp=size(con_temp,1);
         i=ceil(rand()*size_L_temp);
-        [~,r]=ismember(con_temp(i,:),con,'rows');
+       % [~,r]=ismember(con_temp(i,:),con,'rows');
+        r=find(sum(abs(con-(ones(size(con,1),1)*con_temp(i,:))),2)==0);%find selected link index in con
         if ~isempty(mode)
             P_rc=P_mode(i_mode)+P(r,i_mode)'; %links in schema
             P_cr=P_mode(r)+sum(P(i_mode,r)); %link under test
@@ -127,7 +129,7 @@ while z_c<tries*size_L
 %                     break
 %                 end
 %         end
-        fp=sum(sum(mode(:,1:3)));
+        fp=sum(sum(mode(:,1:3).^2));
         if max(fp_all==fp)==1;
             %parbaudam tikai tos, kuriem fingerprints ir vienâds. Ja
             %summa ir daþâda, shemas nevar bût vienâdas pat ja linku
@@ -137,11 +139,23 @@ while z_c<tries*size_L
                 n=kurs(nn);
                 if size(mode_all{n},1)==size(mode,1)
                        counts1=counts1+1;
-                    if isempty(setxor(mode_all{n},mode,'rows'))
+                       % following lines replace function isempty(setxor(mode_all{n},mode,'rows'))
+                       test=1;
+                       for t=1:size(mode,1)
+                           out=find(sum(abs(mode_all{n}-(ones(size(mode_all{n},1),1)*mode(t,:))),2)==0,1);
+                           if isempty(out)
+                               test=0;
+                               break
+                           end
+                       end
+                       if test==1;
+                           break
+                       end
                         
-                        test=1;
-                        break
-                    end
+%                     if isempty(setxor(mode_all{n},mode,'rows'))
+%                         test=1;
+%                         break
+%                     end
                 end
             end
         end

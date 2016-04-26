@@ -1,10 +1,10 @@
-function [Net, n_of_my_routes]=find_route8(Net,s_id,d_id)
+function [Net, n_of_my_routes]=find_route_smr(Net,s_id,d_id)
 rng('shuffle')
-
+%rng(1);
 active=Net.size;
 Net.rreq=zeros(active,1);
 Net.hops=zeros(active,1);
-visual='yes';
+visual='no';
 if strcmp(visual,'yes')
     fig=figure('Position',[969 49 944 947]);
     display_network(Net,fig,s_id,d_id);
@@ -21,7 +21,7 @@ for n_id=1:active
     Net.node(n_id).route{1}=[];
     Net.node(n_id).hops=0;
    
-    Net.node(n_id).prev=[];
+    Net.node(n_id).prev=NaN;
 end
 
 % RREQ forwarding
@@ -39,11 +39,13 @@ while max(Net.rreq)~=0
     Net.rreq(n_id)=rreq_counter-1;% skaitîtâju samazinu par 1
     nb_list=Net.node(n_id).neighbours; %sarkasts ar mezgla n kaimiòiem
     for nb_id=nb_list % òemu pçc kârtas kaimiòu no saraksta
-        if (new_route_hops<=Net.node(nb_id).hops | ...%ja nododamâ route nav garâka kâ kaimiòa iepriekð pârsûtîtâ
-             Net.node(nb_id).hops==0 |... %ja kaimiòam ðis ir pirmais RREQ             
-             nb_id==d_id) &... % ja kaimiòð ir dest (dest pieòem visas routes)
-            ~ismember(nb_id,new_route) &... % ja kaimiòam nododamâ route nav caur viòu (novçrðu cilpas)
-            ~ismember(n_id,Net.node(nb_id).prev) %ja iepriekð nav saòemts no ðîs nodes
+        if (new_route_hops<=Net.node(nb_id).hops || ...%ja nododamâ route nav garâka kâ kaimiòa iepriekð pârsûtîtâ
+             Net.node(nb_id).hops==0 ||... %ja kaimiòam ðis ir pirmais RREQ             
+             nb_id==d_id) &&... % ja kaimiòð ir dest (dest pieòem visas routes)
+             max(new_route==nb_id)==0 && ... % ja kaimiòam nododamâ route nav caur viòu (novçrðu cilpas)
+             max(Net.node(nb_id).prev==n_id)==0 %ja iepriekð nav saòemts no ðîs nodes
+    %     ~ismember(nb_id,new_route) &... % ja kaimiòam nododamâ route nav caur viòu (novçrðu cilpas)
+     %       ~ismember(n_id,Net.node(nb_id).prev) %ja iepriekð nav saòemts no ðîs nodes
             
             if ~isempty(Net.node(nb_id).route{1})    
                 num_nb_routes=size(Net.node(nb_id).route,2); % kaimiòa routu skaits
@@ -61,25 +63,26 @@ while max(Net.rreq)~=0
         end
     end
     
-        
+    if strcmp(visual,'yes')
         j=1;
         for n=nb_list
             if ~isempty(Net.node(n).route{1})
                 for r=1:size(Net.node(n).route,2)
                     path=[Net.node(n).route{r} n];
-    
-                   % for node=length(path)-1:length(path)
-                        con(j,:)=[path(end-1) path(end)];
-                        j=j+1;
-    
-                %    end
+                    
+                    % for node=length(path)-1:length(path)
+                    con(j,:)=[path(end-1) path(end)];
+                    j=j+1;
+                    
+                    %    end
                 end
-    
+                
             end
         end
         
         hold on
         draw_routes(Net,con,fig);
+    end
 end
 n_of_my_routes=size(Net.node(d_id).route,2);
 

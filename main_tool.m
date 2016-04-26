@@ -2,7 +2,7 @@ function result_all=main_tool(alpha,paths,N,system,name)
 % Input parameters which can be modified
 rep=1; % Number of scenarious in single run
 lim_sets=1; % number of path sets selected in single run
-ns2='no'; % NS-2 simulation
+ns2='yes'; % NS-2 simulation
 matlab='yes'; % MATLAB simulation
 max_com_nodes=0; % Maximal number of shared nodes
 max_intersects=0; % Maximal number of path intersects
@@ -21,18 +21,18 @@ if N>1
         antenna_in={ 'array',G,'array',1,10,'full',''};
     else
         G=1;
-        %format: antenna_type, gain, PCS_type, nr,ic_scheme,ic_strategy
+        %format: antenna_type, gain, PCS_type, ic_scheme,nr,ic_strategy
         antenna_in={
             'array',1,'array',1,3,'full',''; % Steered beam array
-            'array',1,'omni',10,7,'obic',''; %adaptive array physical
+         %   'array',1,'omni',10,7,'obic',''; %adaptive array physical
             'dof',1,'omni',0,8,'full',''; % adpative array DOF model
             'mimo',1,'omni',0,11,'',''; % MIMO
             %  'omni',1,'omni',0,1,'','';
             %  'array',1,'omni',1,2,'full','';
             %  'array',1,'omni',3,4,'full','';
             %  'array',1,'array',3,5,'full','';
-            %  'array',1,'omni',10,6,'full','';
-            %  'dof',1,'omni',0,9,'obic','';
+             'array',1,'omni',10,6,'full',''; %adaptive array physical
+             'dof',1,'omni',0,9,'obic','';
             %  'dof',1,'omni',0,12,'full','path';
             %  'dof',1,'omni',0,13,'obic','path';
             %  'mimo',1,'omni',0,14,'','';
@@ -48,7 +48,8 @@ lambda = physconst('LightSpeed')/fc;
 d0=1; K=(lambda^2)/(4*pi*d0)^2;
 tx_d=(P_tx*G*K/3.1623e-11)^(1/alpha);
 tx_d_no_gain=(P_tx*K/3.1623e-11)^(1/alpha);
-Cs_vector=[2*tx_d];
+%Cs_vector=[2*tx_d];
+Cs_vector=[0];
 noise_scale_vector=[1];% noise floor=1.6016e-013 W;
 
 %% set up environment
@@ -76,7 +77,7 @@ p=1;
 positions=[];
 time1=clock;
 while k<=rep
-    [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_pow,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+    [result]=method(system,folderName,time1,positions,topology,nodes,field,P_tx,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
     disp(sprintf('%g-%g-%g-%g-%g-%g:k=%d,alpha=%d,field=%d,paths=%d,N=%d,nodes=%d',clock,k,alpha,field,paths,N,nodes));
     %if  max(max(result))~=0 || nodes>=180
     if  max(max(result))~=0
@@ -95,9 +96,11 @@ end
 end
 
 function [field,nodes]=gen_field(topology,tx_d_no_gain)
-rng('shuffle')
+%rng('shuffle')
+rng(1);
 if strcmp(topology,'random')
-    field=round(tx_d_no_gain*3+rand()*tx_d_no_gain*2);
+    %field=round(tx_d_no_gain*4+rand()*tx_d_no_gain*4);
+    field=round(tx_d_no_gain*4);
     %field=round(tx_d_no_gain*8);
     nodes=ceil((field/(tx_d_no_gain*0.6))^2);
 elseif strcmp(topology,'regular')
@@ -109,7 +112,8 @@ end
 
 
 function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_pow,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
-rng('shuffle')
+%rng('shuffle')
+rng(1);
 tic
 nr=0;
 P_tx=tx_pow;
@@ -130,7 +134,7 @@ end
 if N~=1
     for n=1:nodes
         
-        N_temp=ceil(rand().*(N-1)+1);
+     %   N_temp=ceil(rand().*(N-1)+1);
         N_temp=N;
         Net.node(n).directivity=create_node_directivity(Net,N_temp);
     end
@@ -261,11 +265,11 @@ for sel_c=sel_c_v
                     
                     if strcmp(matlab,'yes')
                         %% tiek mekletas parraides shemas
-                        disp(sprintf('%.2g: Finding schemes...',toc));
+                        disp(fprintf('%.2g: Finding schemes...',toc));
                         [mode,counts]=find_schemes(Net,con,P_cst);
-                        [mode_max_1path]=find_schemes(Net,con(con(:,3)==1,:),Inf);
+ %                       [mode_max_1path]=find_schemes(Net,con(con(:,3)==1,:),Inf);
                         schemes=size(mode,2);
-                        disp(sprintf('%.2g: Found %d schemes in %d iterations\n', toc,schemes, counts));
+                        disp(fprintf('%.2g: Found %d schemes in %d iterations\n', toc,schemes, counts));
                         
                         %% iegustam rate matricas
                         disp(sprintf('%0.2g: calculate rate vectors...',toc))
@@ -286,15 +290,15 @@ for sel_c=sel_c_v
                         end
                         
                         %%calculate Rate matrix of maximum capacity for 1 path
-                        p=1;
-                        for k_max=1:size(mode_max_1path,2)
-                            [rates_max(p:p+(size(mode_max_1path{k_max},1))-1,:), R_max(:,k_max)]=rate_vector(Net,mode_max_1path{k_max},'perfect','ideal',paths,[]);
-                            p=p+size(mode_max_1path{k_max},1);
-                        end
+%                         p=1;
+%                         for k_max=1:size(mode_max_1path,2)
+%                             [rates_max(p:p+(size(mode_max_1path{k_max},1))-1,:), R_max(:,k_max)]=rate_vector(Net,mode_max_1path{k_max},'perfect','ideal',paths,[]);
+%                             p=p+size(mode_max_1path{k_max},1);
+%                         end
                         
                         try
                             R_nz=R(~all(R==0,2),:); %non zero rows
-                            R_max_nz=R_max(~all(R_max==0,2),:); %non zero rows
+ %                           R_max_nz=R_max(~all(R_max==0,2),:); %non zero rows
                         catch
                             fprintf('Out of memory...')
                             size(R)
@@ -321,7 +325,7 @@ for sel_c=sel_c_v
                         t2=toc;
                     else
                         nr=nr+1;
-                        C_max=0; C_agr_proc=0;  C_m_u=0; C_m_f=0;t2=0;
+                        C_m_u=0; C_m_f=0;t2=0;
                     end
                     
                     
