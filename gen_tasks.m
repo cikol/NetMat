@@ -5,15 +5,16 @@ comment='';
 %aplha_v=ones(1,5)*4;
 aplha_v=[4];
 %paths_v=[1 2 3 4];
-paths_v=[2];
+paths_v=[3];
 %N_v=[2 4 6 8 10 12 14 16 32 64];
 %N_v=[4 8 16];
-N_v=[1];
-%N_v=ones(1,40);
+%N_v=[1];
+N_v=ones(1,100);
 %N_v=[25 36 49 64 81];
 system='hpc';
+name='CS_speed';
 %name='dof_randN2';
-name='find_route_test_intersects';
+%name='find_route_test_intersects';
 %name='dof_vs_vector';
 %name='smart_rand_N';
 %name='interpath_metrics_ns2_allmetrics'; % optimal paths+ marðrutu izvçles stratçìija
@@ -41,8 +42,8 @@ for n1=1:length(paths_v)
         end
     end
     job=createJob(cluster);
-    %createTask(job, @main_tool, 1, task_in)
-    createTask(job, @run_komandu_izpilde_test_routing, 1, task_in)
+    createTask(job, @main_tool, 1, task_in)
+    %createTask(job, @run_komandu_izpilde_test_routing, 1, task_in)
     submit(job)
 end
 

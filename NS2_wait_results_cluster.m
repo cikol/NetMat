@@ -21,11 +21,13 @@ while sum(res(:,5)~=0)~=scen_count;
             
             
            
-            jobdir=sprintf('%s/%s',getenv('MDCE_STORAGE_LOCATION'),getenv('MDCE_TASK_LOCATION'));
-            localdir=sprintf('%s/job%g',jobdir,f_id);
+       %     jobdir=sprintf('%s/%s',getenv('MDCE_STORAGE_LOCATION'),getenv('MDCE_TASK_LOCATION'));
+       %     localdir=sprintf('%s/job%g',jobdir,f_id);
             
-            [~,count]=system(sprintf('ls %s/*.mat | wc -l',localdir));
-            count=str2double(count);
+          %  [~,count]=system(sprintf('ls %s/*.mat | wc -l',localdir));
+           
+            %count=str2double(count);
+            count=size(co,1);
             
             disp(sprintf('Scen:%d   Jobs finished: %d from %d',nr,count,jobs))
             
@@ -44,7 +46,9 @@ while sum(res(:,5)~=0)~=scen_count;
                     last_delay_avg=NaN;
                     dev_avg=NaN;
                     t_ns2=NaN;
-                    file_to_load=sprintf('%s/out%d.mat',localdir,count2);
+                   % file_to_load=sprintf('%s/out%d.mat',localdir,count2);
+                  
+                  file_to_load=sprintf('out%d.mat',nr);
                     
                     [~,b]=system(sprintf('if [ -f %s ]; then echo 0; fi',file_to_load));
                     b=str2num(b);
@@ -76,9 +80,9 @@ while sum(res(:,5)~=0)~=scen_count;
                 res(nr,3:10)=[ns2_cbr ns2_cbr_max indx delay_avg last_delay_avg dev_avg delay_spread t_ns2];
                 count_jobs=count_jobs+1;
                try
-                   rmdir(localdir,'s');
+                   delete('*');
                catch
-                   fprintf('NS2 wait results: error deleting jobdir...')
+                   fprintf('NS2 wait results: error deleting files...')
                end
               % system(sprintf('plink -i ui-rtu.ppk ciko@%s "rm -r %s"',cluster,jobdir));
                 

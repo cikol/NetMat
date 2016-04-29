@@ -46,9 +46,9 @@ while sum(res(:,5)~=0)~=scen_count;
                     last_delay_avg=NaN;
                     dev_avg=NaN;
                     t_ns2=NaN;
-                    file_to_load=sprintf('%s/out%d.mat',localdir,count2);
-                    
-                    [~,b]=system(sprintf('if exist %s/%s echo 0',pwd,file_to_load));
+                    file_to_load=sprintf('%s/out%d.mat',localdir,count2)
+                    %disp(file_to_load)
+                    [~,b]=system(sprintf('if exist %s echo 0',file_to_load));
                     b=str2num(b);
                     if b==0
                         load(file_to_load);
@@ -74,12 +74,12 @@ while sum(res(:,5)~=0)~=scen_count;
                 res(nr,3:10)=[ns2_cbr ns2_cbr_max indx delay_avg last_delay_avg dev_avg delay_spread t_ns2];
                 count_jobs=count_jobs+1;
                 
-                try
-                   rmdir(localdir,'s');
-               catch
-                   fprintf('NS2 wait results: error deleting jobdir...')
-               end
-               system(sprintf('plink -i d:/ui-rtu.ppk ciko@%s "rm -r %s"',cluster,jobdir));
+%                 try
+%                    rmdir(localdir,'s');
+%                catch
+%                    fprintf('NS2 wait results: error deleting jobdir...')
+%                end
+              % system(sprintf('plink -i d:/ui-rtu.ppk ciko@%s "rm -r %s"',cluster,jobdir));
                 
                 %             else
                 %                 tries(nr)=tries(nr)+1;

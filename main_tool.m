@@ -1,8 +1,8 @@
 function result_all=main_tool(alpha,paths,N,system,name)
 % Input parameters which can be modified
-rep=1; % Number of scenarious in single run
+rep=100; % Number of scenarious in single run
 lim_sets=1; % number of path sets selected in single run
-ns2='yes'; % NS-2 simulation
+ns2='no'; % NS-2 simulation
 matlab='yes'; % MATLAB simulation
 max_com_nodes=0; % Maximal number of shared nodes
 max_intersects=0; % Maximal number of path intersects
@@ -48,8 +48,8 @@ lambda = physconst('LightSpeed')/fc;
 d0=1; K=(lambda^2)/(4*pi*d0)^2;
 tx_d=(P_tx*G*K/3.1623e-11)^(1/alpha);
 tx_d_no_gain=(P_tx*K/3.1623e-11)^(1/alpha);
+Cs_vector=[1.5*tx_d 2*tx_d 2.5*tx_d];
 %Cs_vector=[2*tx_d];
-Cs_vector=[0];
 noise_scale_vector=[1];% noise floor=1.6016e-013 W;
 
 %% set up environment
@@ -96,11 +96,11 @@ end
 end
 
 function [field,nodes]=gen_field(topology,tx_d_no_gain)
-%rng('shuffle')
-rng(1);
+rng('shuffle')
+%rng(1);
 if strcmp(topology,'random')
-    %field=round(tx_d_no_gain*4+rand()*tx_d_no_gain*4);
-    field=round(tx_d_no_gain*4);
+    field=round(tx_d_no_gain*3+rand()*tx_d_no_gain*4);
+    %field=round(tx_d_no_gain*4);
     %field=round(tx_d_no_gain*8);
     nodes=ceil((field/(tx_d_no_gain*0.6))^2);
 elseif strcmp(topology,'regular')
@@ -112,8 +112,8 @@ end
 
 
 function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_pow,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
-%rng('shuffle')
-rng(1);
+rng('shuffle')
+%rng(1);
 tic
 nr=0;
 P_tx=tx_pow;
@@ -232,7 +232,7 @@ for sel_c=sel_c_v
     for set=sets
         %CS_opt=character(set,11);
         %Cs_vector=[Cs_vector CS_opt];
-        tic
+        
         clear con
         con=connection_list2(Net,s_id,path_sets,set);
         
@@ -255,6 +255,7 @@ for sel_c=sel_c_v
                 
                 for Cs_i=1:length(Cs_vector)
                     %     length(Cs_vector)
+                    tic
                     Cs=Cs_vector(Cs_i);
                     %Aprçíina P_cs slieksni
                     if strcmp(Net.fading,'fading1')
@@ -340,9 +341,11 @@ for sel_c=sel_c_v
                             co=1;
                         end
                         if strcmp(system,'local')
+                          
                             res=run_ns2_5(Net,folderName,s_ids,d_ids,paths,P_cst,nr,co,res);
                         elseif strcmp(system,'hpc')
-                            res=run_ns2_5_cluster(Net,s_ids,d_ids,paths,P_cst,nr,co,res);
+                            %res=run_ns2_5_cluster(Net,s_ids,d_ids,paths,P_cst,nr,co,res);
+                          [res]=ns2_cluster_4(field,s_ids,d_ids,tx_pow,fc,paths,P_cst,nr,noise,co,res);
                         end
                     end
                     
@@ -373,7 +376,8 @@ for sel_c=sel_c_v
                     result(r,19)=character(set,4); %max_hops
                     result(r,20)=character(set,3); %min_hops;
                     result(r,21)=character(set,1); %source_dest_dist
-                    result(r,22)=character(set,11); %convex
+                    %result(r,22)=character(set,11); %convex
+                    result(r,22)=schemes; %schemes
                     result(r,23)=character(set,13); %angle
                     result(r,24)=character(set,9); %set_dist_min
                     result(r,25)=character(set,10); %set_dist_max
@@ -386,11 +390,12 @@ for sel_c=sel_c_v
                     result(r,32)=C_m_u;
                     result(r,33)=C_m_f;
                     result(r,34)=t2; %laiks
-                    result(r,35)=0; % NS-2 cbr
-                    result(r,36)=0; % NS-2 delay
-                    result(r,37)=0; % NS-2 delay last
-                    result(r,38)=0; % NS-2 jitter
-                    result(r,39)=0; % NS-2 time
+                       result(r,35)=0; % NS-2 cbr
+                        result(r,36)=0; % NS-2 delay
+                        result(r,37)=0; % NS-2 delay last
+                        result(r,38)=0; % NS-2 jitter
+                        result(r,39)=0; % NS-2 time
+                    
                     %result(r,:)=[Net.id nodes field s_id d_id paths N tx_d Cs 10*log10(P_cst/0.001) 10*log10(noise/0.001) character(set,:) C*paths C_m_u C_m_f C_max 0 0 0 0 0 0 0];
                     r=r+1;
                     % toc;
@@ -407,12 +412,14 @@ if N==1 && strcmp(ns2,'yes')
     %co=npermutek([0.5 1],paths);
     if strcmp(system,'local')
         res=NS2_wait_results(res,folderName,co);
+        
     elseif strcmp(system,'hpc')
-        res=NS2_wait_results_cluster(res,co);
+        res=NS2_wait_results_cluster(res,co)
     end
-    
+
+
     if max(res(:,5))==0
-        % error('Nav rezultâtu no klastera')
+         error('Nav rezultâtu no klastera')
     else
         %load(res_file)
         
