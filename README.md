@@ -15,7 +15,7 @@ Signal Processing Toolbox
 
 Statistics and Machine Learning Toolbox
 
-lpsolve - Mixed Integer Linear Programming solver. External program from http://lpsolve.sourceforge.net/
+(optional) lpsolve - Mixed Integer Linear Programming solver. External solver from http://lpsolve.sourceforge.net/
 
 
 ## Input Parameters

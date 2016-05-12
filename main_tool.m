@@ -1,18 +1,23 @@
 function result_all=main_tool(alpha,paths,N,system,name)
 % Input parameters which can be modified
-rep=100; % Number of scenarious in single run
+rep=1; % Number of scenarious in single run
 lim_sets=1; % number of path sets selected in single run
 ns2='no'; % NS-2 simulation
 matlab='yes'; % MATLAB simulation
 max_com_nodes=0; % Maximal number of shared nodes
-max_intersects=0; % Maximal number of path intersects
+max_intersects=inf; % Maximal number of path intersects
 sel_c_v=[4];% vector containing path selection criteria to check for each scenario
 P_tx=0.1; % Tx power
+
 fc=2.45e9; % carrier frequency
 topology='random'; % node placement
 %topology='regular';
 gain='no'; % use direcdtional gain (only for antenna array simulation)
-path_to_lpsolve='d:/ownCloud/matlab/lpsolve';
+
+% select solveer for linear programming task 
+%solver='lp_solve'; %external solver (faster)
+solver='linprog'; % MATLAB built-in (slower)
+
 
 %% Do not modify the code below
 if N>1
@@ -48,13 +53,16 @@ lambda = physconst('LightSpeed')/fc;
 d0=1; K=(lambda^2)/(4*pi*d0)^2;
 tx_d=(P_tx*G*K/3.1623e-11)^(1/alpha);
 tx_d_no_gain=(P_tx*K/3.1623e-11)^(1/alpha);
-Cs_vector=[1.5*tx_d 2*tx_d 2.5*tx_d];
-%Cs_vector=[2*tx_d];
+%Cs_vector=[1.5*tx_d 2*tx_d 2.5*tx_d]; % vectro contains possible Physical Carrier sense values (expressed in meters)
+Cs_vector=[2*tx_d];
 noise_scale_vector=[1];% noise floor=1.6016e-013 W;
 
 %% set up environment
 if strcmp(system,'local')
-    addpath(path_to_lpsolve);
+    if stcmp(solver,'lp_solve')
+        path_to_lpsolve='d:/ownCloud/matlab/lpsolve';
+        addpath(path_to_lpsolve);
+    end
     addpath('d:/ownCloud/matlab/tools');
     laiks=clock;
     folderName=sprintf('/tmp/results_%d_%d_%d_%d_%d_%d',laiks(1),laiks(2),laiks(3),laiks(4),laiks(5),round(laiks(6)));
@@ -67,17 +75,17 @@ elseif strcmp(system,'hpc')
     cd(folderName)
 end
 
-%% Field size
+%% Generate field size
 [field,nodes]=gen_field(topology,tx_d_no_gain);
 
 
-%% Repetiotions
+%% Run the main programm "rep" times
 k=1;
 p=1;
 positions=[];
 time1=clock;
 while k<=rep
-    [result]=method(system,folderName,time1,positions,topology,nodes,field,P_tx,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+    [result]=method(system,folderName,time1,positions,topology,nodes,field,P_tx,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name,solver);
     disp(sprintf('%g-%g-%g-%g-%g-%g:k=%d,alpha=%d,field=%d,paths=%d,N=%d,nodes=%d',clock,k,alpha,field,paths,N,nodes));
     %if  max(max(result))~=0 || nodes>=180
     if  max(max(result))~=0
@@ -99,7 +107,7 @@ function [field,nodes]=gen_field(topology,tx_d_no_gain)
 rng('shuffle')
 %rng(1);
 if strcmp(topology,'random')
-    field=round(tx_d_no_gain*3+rand()*tx_d_no_gain*4);
+    field=round(tx_d_no_gain*4+rand()*tx_d_no_gain*5);
     %field=round(tx_d_no_gain*4);
     %field=round(tx_d_no_gain*8);
     nodes=ceil((field/(tx_d_no_gain*0.6))^2);
@@ -110,8 +118,7 @@ elseif strcmp(topology,'regular')
 end
 end
 
-
-function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_pow,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name);
+function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_pow,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name,solver);
 rng('shuffle')
 %rng(1);
 tic
@@ -178,8 +185,6 @@ while isempty(path_sets) & new_net~=0 & limit1<20
     elseif strcmp(proto,'aodvm')
         [Net,route]=find_route_aodvm(Net,s_id,d_id);
     end
-    % meg=meg+1;
-    %[Net, route]=find_route10(Net,s_id,d_id);
     disp(sprintf('%.2g: found %d routes\n', toc,route));
     
     %find path sets
@@ -204,11 +209,10 @@ positions=Net.positions;
 name2=sprintf('%s/positions_%05.f.mat',folderName,Net.id);
 %save(name2,'positions');
 %meg=0;
-%% raksturot izveletos ceïu komplektus
+%% charaterize path sets
 [character]=net_structure_character(Net,path_sets);
 
-
-time2=clock;
+time2=clock; % routing time
 t1=etime(time2,time1);
 res=zeros(1,10);
 for sel_c=sel_c_v
@@ -218,46 +222,38 @@ for sel_c=sel_c_v
     %     sel_p=2;
     % end
     %sel_p=4;
-    %% Marsrutu komplektu atlase analizei
+    %% selection of path sets
     clear sets
     [sets]=select_path_sets(path_sets,sel_c,character,lim_sets);
     
-    %%
-    
-    
-    
-    %% Method
-    %res=zeros(length(sets),10);
-    
+    %% Analytical method
+      
     for set=sets
-        %CS_opt=character(set,11);
-        %Cs_vector=[Cs_vector CS_opt];
-        
+        %% create list of links
         clear con
         con=connection_list2(Net,s_id,path_sets,set);
-        
+        %% save toplolgy example
         %draw rotues
         %fig=figure('Visible','off');
         %draw_routes(Net,con,fig);
         %jpg_name=sprintf('%s/%05.f.jpg',folderName,Net.id);
         %saveas(fig,jpg_name,'jpg');
         %close(fig);
+        %%
         for an=1:size(antenna_in,1)
             %size(antenna_in,1)
             antena_type=antenna_in{an,1};G_antenna=antenna_in{an,2};cs_type=antenna_in{an,3};w=antenna_in{an,4};a_t=antenna_in{an,5};ic_scheme=antenna_in(an,6);ic_strat=antenna_in(an,7);
-            antenna_in(an,:)
+           % antenna_in(an,:)
             Net.type=cs_type;
             Net.G=G_antenna;
             for scale=1:length(noise_scale_vector)
-                %  length(noise_scale_vector)
                 Net=set_noise(Net,noise_scale_vector(scale));
                 noise=Net.thermal_noise_vector(1);
                 
                 for Cs_i=1:length(Cs_vector)
-                    %     length(Cs_vector)
                     tic
                     Cs=Cs_vector(Cs_i);
-                    %Aprçíina P_cs slieksni
+                    % Calculate PCS threshold
                     if strcmp(Net.fading,'fading1')
                         P_cst=(P_tx*G_antenna*lambda^2)/((4*pi*Cs)^2);
                     elseif strcmp(Net.fading,'fading2')
@@ -272,7 +268,7 @@ for sel_c=sel_c_v
                         schemes=size(mode,2);
                         disp(fprintf('%.2g: Found %d schemes in %d iterations\n', toc,schemes, counts));
                         
-                        %% iegustam rate matricas
+                        %% Calcualte link data rate (rate vectors)
                         disp(sprintf('%0.2g: calculate rate vectors...',toc))
                         clear R rates R_max rates_max;
                         p=1;
@@ -281,13 +277,13 @@ for sel_c=sel_c_v
                             [rates(p:p+(size(mode{k},1))-1,:), R(:,k)]=rate_vector(Net,mode{k},'perfect',antena_type,paths,[],ic_scheme,w,ic_strat);
                             p=p+size(mode{k},1);
                         end
-                        %Pârbaude vai visi linki ir iekïauti shçmâs
+                        % Check if all links were included
                         if min(rates(:,4))==0
                             R=R*0;
                             error('SINR<2.5')
                         end
                         if size(unique(rates(:,1:3),'rows'),1)~=size(con,1)
-                            error('Kïûda pârraides shçmu izveidç')
+                            error('Errror in find schemes')
                         end
                         
                         %%calculate Rate matrix of maximum capacity for 1 path
@@ -306,22 +302,12 @@ for sel_c=sel_c_v
                             result=zeros(1,39);
                             return
                         end
-                        
-                        
                         disp(sprintf('%.2g: finish rate matrix',toc));
-                        %% capacity
+                        %% Calculate path capacity (max flow method)
                         %                    C=uniform_capacity(R_nz);
-                        [C_m_u,~]=max_flow(nodes,con,R_nz,paths,'uniform');
-                        [C_m_f,~]=max_flow(nodes,con,R_nz,paths,'flows');
-                        %C_max=uniform_capacity(R_max_nz);
-                        %                [C.*paths;                 C_m_u;                 C_m_f;                 ones(1,5).*C_max]
+                        [C_m_u,~]=max_flow(nodes,con,R_nz,paths,'uniform',solver);
+                        [C_m_f,~]=max_flow(nodes,con,R_nz,paths,'flows',solver);
                         
-                        
-                        %avg_hops=distance(set,size(distance,2)-2);
-                        %interfering_pairs=distance(set,size(distance,2)-1);
-                        %avg_interpath_distance=round(distance(set,size(distance,2)));
-                        % C_agr=paths*C;
-                        %   C_agr_proc=round(C_agr/C_max*100);
                         nr=nr+1;
                         t2=toc;
                     else
@@ -329,7 +315,7 @@ for sel_c=sel_c_v
                         C_m_u=0; C_m_f=0;t2=0;
                     end
                     
-                    
+                    %% Run NS-2 simulation
                     if N==1 && strcmp(ns2,'yes')
                         [ns_nodes,s_ids,d_ids]=routes_ns2(Net,folderName,path_sets,set,s_id,paths);
                         position_ns2(Net,folderName,field,s_id,paths,ns_nodes);
@@ -348,11 +334,11 @@ for sel_c=sel_c_v
                           [res]=ns2_cluster_4(field,s_ids,d_ids,tx_pow,fc,paths,P_cst,nr,noise,co,res);
                         end
                     end
-                    
-                    
+                    %%                    
                     if strcmp(cs_type,'omni');cs_t=1;
                     elseif strcmp(cs_type,'array');cs_t=2;
                     end
+                    % write results
                     result(r,1)=Net.id;
                     result(r,2)=nodes;
                     result(r,3)=field;
@@ -390,31 +376,28 @@ for sel_c=sel_c_v
                     result(r,32)=C_m_u;
                     result(r,33)=C_m_f;
                     result(r,34)=t2; %laiks
-                       result(r,35)=0; % NS-2 cbr
-                        result(r,36)=0; % NS-2 delay
-                        result(r,37)=0; % NS-2 delay last
-                        result(r,38)=0; % NS-2 jitter
-                        result(r,39)=0; % NS-2 time
+                    result(r,35)=0; % NS-2 cbr
+                    result(r,36)=0; % NS-2 delay
+                    result(r,37)=0; % NS-2 delay last
+                    result(r,38)=0; % NS-2 jitter
+                    result(r,39)=0; % NS-2 time
                     
-                    %result(r,:)=[Net.id nodes field s_id d_id paths N tx_d Cs 10*log10(P_cst/0.001) 10*log10(noise/0.001) character(set,:) C*paths C_m_u C_m_f C_max 0 0 0 0 0 0 0];
                     r=r+1;
-                    % toc;
-                    %[sel_p character(set,2) character(set,10) Cs C_m_u]
+                    
                 end
             end
         end
     end
 end
 
-%%
-
+%% Gather NS-2 results form cluster
 if N==1 && strcmp(ns2,'yes')
     %co=npermutek([0.5 1],paths);
     if strcmp(system,'local')
         res=NS2_wait_results(res,folderName,co);
         
     elseif strcmp(system,'hpc')
-        res=NS2_wait_results_cluster(res,co)
+        res=NS2_wait_results_cluster(res,co);
     end
 
 
@@ -430,7 +413,7 @@ if N==1 && strcmp(ns2,'yes')
     end
 end
 
-%% rezulati uz texta failu
+%% Save results in text file
 if strcmp(system,'hpc')
     txtfilename=sprintf('/home/ciko/matlab/%s_%s',date,name);
     try

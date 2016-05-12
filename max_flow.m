@@ -1,4 +1,4 @@
-function [obj,flows]=max_flow(nodes,con,R,paths,method)
+function [obj,flows]=max_flow(nodes,con,R,paths,method,solver)
 [mm,kk]=size(R);
 Aeq=zeros(mm,mm+kk);
 %Kura con pçc kârtas ir katra R rinda sâkot no 1.
@@ -73,8 +73,13 @@ end
 
 vlb=zeros(size(a,2),1);
 vub=ones(size(a,2),1);
-vub(1:mm)=NaN;
+vub(1:mm)=inf;
+if strcmp(solver,'lp_solve')
 [obj,x] = lp_solve(f,a,b,e,vlb,vub);
+else
+[x,fval]  = linprog(-f,[A;Aeq2;-Aeq3],[bA;bAeq2;bAeq3],Aeq,bAeq,vlb,vub);
+obj=-fval;
+end
 flows=zeros(1,4);
 flows(1:paths)=x(f~=0);
 
