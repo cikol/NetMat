@@ -1,12 +1,15 @@
-function node=create_node(id, tx_pow)
-fc = 2.45e9;
+% The function creates a node object and sets the basic properties
+% id - node identifier
+% tx_pow - transmission power
+% fc - carrier frequency
+function node=create_node(id, tx_pow,fc)
 lambda = physconst('LightSpeed')/fc; %jo lamda=v*T
-delta=0;k=2*pi/lambda;d=lambda/2;
+d=lambda/2;
 node.id=id;
 node.antenna_element='isotropic';
 node.fc=fc;
 node.d=d;
-node.bw=1e6;
+node.bw=20e6;
 node.transmit_pow=tx_pow;
 node.transmitter = phased.Transmitter('PeakPower',tx_pow,'Gain',0,...
     'LossFactor',0,'InUseOutputPort',true);

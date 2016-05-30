@@ -1,5 +1,24 @@
+% The main function to generate reandom scenario and calculate path
+% capacity
+% Execution format is:
+% [output]=main_tool(alpha,paths,N,system,Jobname)
+% alpha - path loss exponent in radio propagation model;
+% paths - number of simultaneous paths;
+% N - number of antenna array elements, 1 is for Omni-directional transmission;
+% system - valid values ar 'local' or 'hpc';
+% Jobname - name of the job;
+%
+% Example:
+% [output]=main_tool(4,2,1,'local','testrun')
 function result_all=main_tool(alpha,paths,N,system,name)
-% Input parameters which can be modified
+%Validate input
+validateattributes(alpha,{'numeric'},{'nonempty'},mfilename,'Path loss exponent',1);
+validateattributes(paths,{'numeric'},{'nonempty'},mfilename,'Number of routes',2);
+validateattributes(N,{'numeric'},{'nonempty'},mfilename,'Array elements',3);
+validateattributes(system,{'char'},{'nonempty'},mfilename,'Computing system',4);
+validateattributes(name,{'char'},{'nonempty'},mfilename,'Job name',5);
+
+%% Additional input parameters which can be modified
 rep=1; % Number of scenarious in single run
 lim_sets=1; % number of path sets selected in single run
 ns2='no'; % NS-2 simulation
@@ -59,7 +78,7 @@ noise_scale_vector=[1];% noise floor=1.6016e-013 W;
 
 %% set up environment
 if strcmp(system,'local')
-    if stcmp(solver,'lp_solve')
+    if strcmp(solver,'lp_solve')
         path_to_lpsolve='d:/ownCloud/matlab/lpsolve';
         addpath(path_to_lpsolve);
     end
@@ -104,10 +123,10 @@ end
 end
 
 function [field,nodes]=gen_field(topology,tx_d_no_gain)
-rng('shuffle')
-%rng(1);
+%rng('shuffle')
+rng(1);
 if strcmp(topology,'random')
-    field=round(tx_d_no_gain*4+rand()*tx_d_no_gain*5);
+    field=round(tx_d_no_gain*2+rand()*tx_d_no_gain*4);
     %field=round(tx_d_no_gain*4);
     %field=round(tx_d_no_gain*8);
     nodes=ceil((field/(tx_d_no_gain*0.6))^2);
@@ -119,7 +138,7 @@ end
 end
 
 function [result]=method(system,folderName,time1,positions,topology,nodes,field,tx_pow,fc,tx_d,N,antenna_in,paths,max_com_nodes,max_intersects,sel_c_v,lim_sets,alpha,Cs_vector,noise_scale_vector,ns2,matlab,name,solver);
-rng('shuffle')
+%rng('shuffle')
 %rng(1);
 tic
 nr=0;
@@ -134,7 +153,7 @@ proto='smr_mod';
 if new_net~=0
     for n=1:nodes
         
-        Net.node(n)=create_node(n,tx_pow);
+        Net.node(n)=create_node(n,tx_pow,fc);
         
     end
 end
@@ -201,9 +220,6 @@ if isempty(path_sets)
     return
 end
 Net.s_d_id=[s_id d_id];
-
-%rng=1;
-
 Net.id=round(rand()*1000000);
 positions=Net.positions;
 name2=sprintf('%s/positions_%05.f.mat',folderName,Net.id);

@@ -1,5 +1,5 @@
 function [Net, n_of_my_routes]=find_route_smr_mod(Net,s_id,d_id)
-rng('shuffle')
+%rng('shuffle')
 %rng(1);
 visual='no';
 if strcmp(visual,'yes')

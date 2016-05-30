@@ -1,5 +1,5 @@
 function [mode_all,counts,summa]=find_schemes(Net,con, P_cst)
-rng('shuffle')
+%rng('shuffle')
 %rng(1);
 if P_cst~=Inf;
     type=Net.type;

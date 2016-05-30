@@ -1,5 +1,6 @@
 function N=new_network(N,topology,positions,fading,transceivers,antenna_type,reciever,t_p,x_p,f_p)
 %rng('shuffle')
+rng(1)
 % We set the general parameters =============================
 N.topology=topology;
 N.fading=fading;
