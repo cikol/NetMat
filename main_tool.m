@@ -123,8 +123,8 @@ end
 end
 
 function [field,nodes]=gen_field(topology,tx_d_no_gain)
-%rng('shuffle')
-rng(1);
+rng('shuffle')
+%rng(1);
 if strcmp(topology,'random')
     field=round(tx_d_no_gain*2+rand()*tx_d_no_gain*4);
     %field=round(tx_d_no_gain*4);
@@ -141,6 +141,7 @@ function [result]=method(system,folderName,time1,positions,topology,nodes,field,
 %rng('shuffle')
 %rng(1);
 tic
+Net.id=round(rand()*1000000);
 nr=0;
 P_tx=tx_pow;
 
@@ -159,13 +160,11 @@ if new_net~=0
 end
 if N~=1
     for n=1:nodes
-        
-     %   N_temp=ceil(rand().*(N-1)+1);
+     %  N_temp=ceil(rand().*(N-1)+1);
         N_temp=N;
         Net.node(n).directivity=create_node_directivity(Net,N_temp);
     end
 end
-
 
 %% Create network
 no_connectivity=1;
@@ -173,8 +172,7 @@ tries=0;
 while no_connectivity==1 & tries<100
     tries=tries+1;
     %set node posstiontions
-    fading='fading2';
-    Net=new_network(Net,topology,positions,fading,'transceivers1','array','perfect',[nodes field/2 tx_d],[tx_pow 1e6],[1 alpha 0]);
+    Net=new_network(Net,topology,positions,'transceivers1','array','perfect',[nodes field/2 tx_d],[tx_pow 1e6],[1 alpha 0]);
     %% find neighbours
     [Net,no_connectivity]=find_neighbours(Net,tx_d);
 end
@@ -189,13 +187,14 @@ limit1=0;
 route=0;
 while isempty(path_sets) & new_net~=0 & limit1<20
     d=0;
+    % select source and destination
     while d<max(max(Net.distances))/1.5
         s_id=ceil(rand()*nodes);
         d_id=ceil(rand()*nodes);
         d=Net.distances(s_id,d_id);
     end
     
-    %routing
+    % routing
     disp(sprintf('%.2g: routing... %d',toc,limit1))
     if strcmp(proto,'smr')
         [Net,route]=find_route_smr(Net,s_id,d_id);
@@ -206,7 +205,7 @@ while isempty(path_sets) & new_net~=0 & limit1<20
     end
     disp(sprintf('%.2g: found %d routes\n', toc,route));
     
-    %find path sets
+    % find path sets
     if route>=paths
         disp(sprintf('%.2g: finding path sets...',toc))
         path_sets=path_selection(Net,s_id,paths,max_com_nodes,max_intersects);
@@ -220,11 +219,7 @@ if isempty(path_sets)
     return
 end
 Net.s_d_id=[s_id d_id];
-Net.id=round(rand()*1000000);
-positions=Net.positions;
-name2=sprintf('%s/positions_%05.f.mat',folderName,Net.id);
-%save(name2,'positions');
-%meg=0;
+
 %% charaterize path sets
 [character]=net_structure_character(Net,path_sets);
 
@@ -270,16 +265,12 @@ for sel_c=sel_c_v
                     tic
                     Cs=Cs_vector(Cs_i);
                     % Calculate PCS threshold
-                    if strcmp(Net.fading,'fading1')
-                        P_cst=(P_tx*G_antenna*lambda^2)/((4*pi*Cs)^2);
-                    elseif strcmp(Net.fading,'fading2')
-                        P_cst=P_tx*G_antenna*K/((Cs/d0)^(alpha));
-                    end
-                    
+                      P_cst=P_tx*G_antenna*K/((Cs/d0)^(alpha));
+                                        
                     if strcmp(matlab,'yes')
                         %% tiek mekletas parraides shemas
                         disp(fprintf('%.2g: Finding schemes...',toc));
-                        [mode,counts]=find_schemes(Net,con,P_cst);
+                        [mode,counts]=find_schemes(Net,con,P_tx, P_cst, noise);
  %                       [mode_max_1path]=find_schemes(Net,con(con(:,3)==1,:),Inf);
                         schemes=size(mode,2);
                         disp(fprintf('%.2g: Found %d schemes in %d iterations\n', toc,schemes, counts));

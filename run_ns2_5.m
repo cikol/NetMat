@@ -1,3 +1,4 @@
+% starts NS-2 simulation on local system
 function [res]=run_ns2_5(Net,folderName,s_ids,d_ids,paths,P_cst,nr,co,res)
 cluster='85.254.226.77';
 if P_cst==Inf

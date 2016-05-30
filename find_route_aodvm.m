@@ -1,3 +1,4 @@
+% Simplified model for Ad-hoc On-Demand Vector Multipath routing protocol
 function [Net,n_of_my_routes]=find_route_aodvm(Net,s_id,d_id)
 rng('shuffle')
 %rng(1);

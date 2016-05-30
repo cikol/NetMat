@@ -1,3 +1,4 @@
+% creates input file for NS-2
 function position_ns2(Net,folderName,field,s_id,paths,nodes)
 positions=Net.positions;
 fileName=sprintf('%s/pos2.txt',folderName);

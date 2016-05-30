@@ -1,4 +1,5 @@
-function [Net,no_route,avg_neighbour_distance]=find_neighbours(Net,P_0)
+% List of neighbours is created for each node
+function [Net,no_route]=find_neighbours(Net,P_0)
 %P_0=50;
 no_route=0;
 n=Net.size;

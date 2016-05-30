@@ -1,9 +1,10 @@
-function N=new_network(N,topology,positions,fading,transceivers,antenna_type,reciever,t_p,x_p,f_p)
+% Creates new network by placing nodes and calculating gain
+function N=new_network(N,topology,positions,transceivers,antenna_type,reciever,t_p,x_p,f_p)
 %rng('shuffle')
 rng(1)
 % We set the general parameters =============================
 N.topology=topology;
-N.fading=fading;
+%N.fading=fading;
 N.type=antenna_type;
 %N.transceivers=transceivers;
 N.topology_parameters=t_p;

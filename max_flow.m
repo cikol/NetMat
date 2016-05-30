@@ -1,3 +1,4 @@
+% Funcition creates linear system to solve maximum flow problem 
 function [obj,flows]=max_flow(nodes,con,R,paths,method,solver)
 [mm,kk]=size(R);
 Aeq=zeros(mm,mm+kk);

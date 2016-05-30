@@ -1,3 +1,4 @@
+% Function calculates different path characteristics
 function [character]=net_structure_character(Net,path_sets)
 paths=size(path_sets,2)-1;
 s_id=Net.s_d_id(1);

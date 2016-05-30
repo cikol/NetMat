@@ -1,3 +1,4 @@
+% Function selects path sets according to selection criteria
 function [sets]=select_path_sets(path_sets,sel_p,character,lim_sets)
 paths=size(path_sets,2)-1;
 if sel_p==1

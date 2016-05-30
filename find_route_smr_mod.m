@@ -1,3 +1,4 @@
+% Simplified model for Split Multi-path Rotuing protocol (modified version)
 function [Net, n_of_my_routes]=find_route_smr_mod(Net,s_id,d_id)
 %rng('shuffle')
 %rng(1);

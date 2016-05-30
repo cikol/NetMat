@@ -1,3 +1,4 @@
+% Function gathers NS-2 results
 function res=NS2_wait_results(res,folderName,co)
 %% check job to finish
 %load(res_file)

@@ -1,3 +1,4 @@
+% starts NS-2 simulation on remote (HPC) system
 function [res]=ns2_cluster_4(field,s_ids,d_ids,pow,fc,paths,P_cst,nr,noise,co,res)
 tic
 whos

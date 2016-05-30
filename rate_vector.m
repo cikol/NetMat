@@ -1,3 +1,4 @@
+% Calculate data rate for each link
 function [rates, rate_matrix]=rate_vector(Net,mode,receiver_type,type,paths,output,ic_scheme,w,ic_strat)
 
 % INITIALIZATION

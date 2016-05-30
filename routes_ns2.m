@@ -1,3 +1,4 @@
+% Converts routes to NS-2 format
 function [nodes,temp1,temp2]=routes_ns2(Net,folderName,path_sets,set,s_id,paths)
 
 fileName=sprintf('%s/routes',folderName);

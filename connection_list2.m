@@ -1,3 +1,4 @@
+% Creates list of links forming the paths
 function con=connection_list2(Net,s_id,path_sets,set)
 j=1;
 %id=s_id;

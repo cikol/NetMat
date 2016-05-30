@@ -23,34 +23,34 @@ function set_gains=set_gains_1(Net);
 set_gains=Net;
 fc=Net.node(1).fc;
 lambda = physconst('LightSpeed')/fc; %jo lamda=v*T
-
-
-
-if strcmp(Net.fading,'fading1'),
-    
-    % we calculate the new power gains
-    for i=1:Net.size,
-        for j=1:Net.size,
-            if (i==j),
-                set_gains.gains(i,j)=0;
-                set_gains.angles{i,j}=0;
-            elseif (i>j),
-                tx_pos=Net.node(i).position.InitialPosition;
-                rx_pos=Net.node(j).position.InitialPosition;
-                %[x,y]=rangeangle(rx_pos,tx_pos)
-                [set_gains.distances(i,j),set_gains.angles{i,j}] = rangeangle(rx_pos,tx_pos);
-                [set_gains.distances(j,i),set_gains.angles{j,i}] = rangeangle(tx_pos,rx_pos);
-                L(i,j)=1/db2pow(fspl(set_gains.distances(i,j),lambda));
-                
-                
-                set_gains.gains(i,j)=1/db2pow(fspl(set_gains.distances(i,j),lambda));
-                set_gains.gains(j,i)=set_gains.gains(i,j);
-            end;
-        end;
-    end;
-    
-end
-if strcmp(Net.fading,'fading2'),
+% 
+% 
+% 
+% if strcmp(Net.fading,'fading1'),
+%     
+%     % we calculate the new power gains
+%     for i=1:Net.size,
+%         for j=1:Net.size,
+%             if (i==j),
+%                 set_gains.gains(i,j)=0;
+%                 set_gains.angles{i,j}=0;
+%             elseif (i>j),
+%                 tx_pos=Net.node(i).position.InitialPosition;
+%                 rx_pos=Net.node(j).position.InitialPosition;
+%                 %[x,y]=rangeangle(rx_pos,tx_pos)
+%                 [set_gains.distances(i,j),set_gains.angles{i,j}] = rangeangle(rx_pos,tx_pos);
+%                 [set_gains.distances(j,i),set_gains.angles{j,i}] = rangeangle(tx_pos,rx_pos);
+%                 L(i,j)=1/db2pow(fspl(set_gains.distances(i,j),lambda));
+%                 
+%                 
+%                 set_gains.gains(i,j)=1/db2pow(fspl(set_gains.distances(i,j),lambda));
+%                 set_gains.gains(j,i)=set_gains.gains(i,j);
+%             end;
+%         end;
+%     end;
+%     
+% end
+%if strcmp(Net.fading,'fading2'),
     
     % we set the parameters
     d0=Net.fading_parameters(1);
@@ -85,5 +85,5 @@ if strcmp(Net.fading,'fading2'),
         end;
     end;
     
-end;
+%end;
 end

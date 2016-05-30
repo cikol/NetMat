@@ -1,3 +1,4 @@
+% Function adds directivity parameters to node object
 function directivity=create_node_directivity(Net,N)
 d=Net.node.d;
 fc=Net.node.fc;
